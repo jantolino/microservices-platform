@@ -151,7 +151,7 @@ Unseal Key 3: rLxkmZLtmnNBkjm40YDNQTOL78+nk8aw1Bp7jTOER7bI
 Unseal Key 4: gzXefVVWGcbejVi5gILtjfAtZhxpUjc8nCeyw0Hlrfmr
 Unseal Key 5: K5H+aYrYel+XhnCAKYMq2O6bTz+KleTTQx9TFY/1HdYJ
 
-Initial Root Token: hvs.bmAzY1Gy77WuokdE73VQRRqB
+
 
 # Desbloquear Vault (requiere 3 claves)
 kubectl exec -it vault-0 -n security -- vault operator unseal
