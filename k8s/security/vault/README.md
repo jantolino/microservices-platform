@@ -143,16 +143,6 @@ Tras la instalación, Vault se encuentra sellado (sealed). Se debe inicializar y
 # Inicializar Vault (solo una vez)
 kubectl exec -it vault-0 -n security -- vault operator init
 
-# El comando anterior devuelve 5 Unseal Keys y un Root Token
-# Guardar estas claves de forma segura (por ejemplo, en un gestor de contraseñas).
-Unseal Key 1: GWokmouVmZtJxhs+kfVPTaORP737oTB8YakF3/idwRWx
-Unseal Key 2: e8cJttYh+67ftQV8TJhMktlw6i+7GGqrTe/BfvXycwCs
-Unseal Key 3: rLxkmZLtmnNBkjm40YDNQTOL78+nk8aw1Bp7jTOER7bI
-Unseal Key 4: gzXefVVWGcbejVi5gILtjfAtZhxpUjc8nCeyw0Hlrfmr
-Unseal Key 5: K5H+aYrYel+XhnCAKYMq2O6bTz+KleTTQx9TFY/1HdYJ
-
-
-
 # Desbloquear Vault (requiere 3 claves)
 kubectl exec -it vault-0 -n security -- vault operator unseal
 # Repetir con tres claves diferentes
