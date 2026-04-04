@@ -1,0 +1,72 @@
+%% FLUJO DE MONITOREO Y OBSERVABILIDAD
+%% ================================
+%% Este diagrama muestra cómo se implementa la observabilidad en el servicio
+%% de notificaciones, siguiendo los patrones de observabilidad identificados.
+
+%% EXPLICACIÓN DEL FLUJO:
+%% 1. Recolección de Métricas: Puntos de medición en componentes clave
+%% 2. Health Checks: Verificación de salud de componentes y dependencias
+%% 3. Trazabilidad Distribuida: Seguimiento de solicitudes entre servicios
+%% 4. Logging Estructurado: Registro centralizado y búsqueda eficiente
+%% 5. Alertas: Detección y notificación de anomalías
+
+flowchart TD
+    %% Puntos de recolección de métricas
+    NotificationService[Notification Service] --> MetricsCollector
+    EmailChannel[Email Channel] --> MetricsCollector
+    SMSChannel[SMS Channel] --> MetricsCollector
+    PushChannel[Push Channel] --> MetricsCollector
+    
+    %% Procesamiento de métricas
+    MetricsCollector[Metrics Collector] --> PrometheusRegistry
+    PrometheusRegistry[Prometheus Registry] --> PrometheusEndpoint
+    PrometheusEndpoint[Prometheus Endpoint] --> PrometheusServer[(Prometheus Server)]
+    
+    %% Health checks
+    HealthCheckController[Health Check Controller] --> EmailProviderHealthCheck
+    HealthCheckController --> SMSProviderHealthCheck
+    HealthCheckController --> DatabaseHealthCheck
+    HealthCheckController --> RabbitMQHealthCheck
+    
+    EmailProviderHealthCheck[Email Provider Health Check] --> HealthAggregator
+    SMSProviderHealthCheck[SMS Provider Health Check] --> HealthAggregator
+    DatabaseHealthCheck[Database Health Check] --> HealthAggregator
+    RabbitMQHealthCheck[RabbitMQ Health Check] --> HealthAggregator
+    
+    HealthAggregator[Health Aggregator] --> ActuatorEndpoint[Actuator Endpoint]
+    
+    %% Trazabilidad
+    NotificationService --> TracingContext
+    TracingContext[Tracing Context] --> JaegerExporter
+    JaegerExporter[Jaeger Exporter] --> JaegerCollector[(Jaeger Collector)]
+    
+    %% Logging
+    LoggingAspect[Logging Aspect] --> StructuredLogger
+    StructuredLogger[Structured Logger] --> LogstashAppender
+    LogstashAppender[Logstash Appender] --> ElasticsearchCluster[(Elasticsearch Cluster)]
+    ElasticsearchCluster --> KibanaDashboard[Kibana Dashboard]
+    
+    %% Audit Logging
+    AuditLogger[Audit Logger] --> AuditRepository[(Audit Repository)]
+    AuditLogger --> LogstashAppender
+    
+    %% Alertas
+    PrometheusServer --> AlertRules
+    AlertRules[Alert Rules] --> AlertManager
+    AlertManager[Alert Manager] --> NotificationChannels
+    NotificationChannels[Notification Channels] --> EmailAlert
+    NotificationChannels --> SlackAlert
+    NotificationChannels --> PagerDutyAlert
+    
+    %% Estilo
+    classDef service fill:#bbf,stroke:#333,stroke-width:2px
+    classDef collector fill:#bfb,stroke:#333,stroke-width:1px
+    classDef endpoint fill:#fbb,stroke:#333,stroke-width:1px
+    classDef storage fill:#fdd,stroke:#333,stroke-width:1px
+    classDef alert fill:#ffd,stroke:#333,stroke-width:1px
+    
+    class NotificationService,EmailChannel,SMSChannel,PushChannel service
+    class MetricsCollector,TracingContext,StructuredLogger,LoggingAspect,HealthAggregator collector
+    class PrometheusEndpoint,ActuatorEndpoint,JaegerExporter endpoint
+    class PrometheusServer,JaegerCollector,ElasticsearchCluster,AuditRepository storage
+    class AlertRules,AlertManager,NotificationChannels,EmailAlert,SlackAlert,PagerDutyAlert alert

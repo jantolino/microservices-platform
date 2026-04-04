@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOGS" value="./logs" />
+    <property name="APP_NAME" value="notification-service" />
+
+    <!-- Appender para la consola con formato estándar -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d [%thread] %-5level %-50logger{40} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Appender para archivo de log estándar -->
+    <appender name="StandardFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/${APP_NAME}.log</file>
+        <encoder>
+            <pattern>%d [%thread] %-5level %-50logger{40} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS}/${APP_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Appender para archivo de log en formato JSON -->
+    <appender name="JsonFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/${APP_NAME}.json</file>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Campos de contexto de solicitud -->
+            <includeMdcKeyName>requestId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <includeMdcKeyName>sessionId</includeMdcKeyName>
+            
+            <!-- Campos de trazabilidad -->
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            
+            <!-- Campos de contexto de ejecución -->
+            <includeMdcKeyName>layer</includeMdcKeyName>
+            <includeMdcKeyName>class</includeMdcKeyName>
+            <includeMdcKeyName>method</includeMdcKeyName>
+            <includeMdcKeyName>executionTimeMs</includeMdcKeyName>
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <message>message</message>
+                <logger>logger</logger>
+                <thread>thread</thread>
+                <level>level</level>
+            </fieldNames>
+            <customFields>{"application":"${APP_NAME}","environment":"${ENVIRONMENT:-dev}"}</customFields>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS}/${APP_NAME}-%d{yyyy-MM-dd}.json</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- LOG everything at INFO level -->
+    <root level="info">
+        <appender-ref ref="StandardFile" />
+        <appender-ref ref="JsonFile" />
+        <appender-ref ref="Console" />
+    </root>
+
+    <!-- LOG "edu.market.notification*" at DEBUG level -->
+    <logger name="edu.market.notification" level="debug" additivity="false">
+        <appender-ref ref="StandardFile" />
+        <appender-ref ref="JsonFile" />
+        <appender-ref ref="Console" />
+    </logger>
+
+    <!-- LOG Spring Security at INFO level -->
+    <logger name="org.springframework.security" level="info" additivity="false">
+        <appender-ref ref="StandardFile" />
+        <appender-ref ref="Console" />
+    </logger>
+
+    <!-- LOG Spring Web at INFO level -->
+    <logger name="org.springframework.web" level="info" additivity="false">
+        <appender-ref ref="StandardFile" />
+        <appender-ref ref="JsonFile" />
+        <appender-ref ref="Console" />
+    </logger>
+
+    <!-- LOG Hibernate at INFO level -->
+    <logger name="org.hibernate" level="info" additivity="false">
+        <appender-ref ref="StandardFile" />
+        <appender-ref ref="JsonFile" />
+        <appender-ref ref="Console" />
+    </logger>
+
+    <!-- LOG Hibernate SQL at DEBUG level -->
+    <logger name="org.hibernate.SQL" level="debug" additivity="false">
+        <appender-ref ref="StandardFile" />
+        <appender-ref ref="JsonFile" />
+        <appender-ref ref="Console" />
+    </logger>
+
+    <!-- LOG Hibernate SQL parameters at TRACE level -->
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="trace" additivity="false">
+        <appender-ref ref="StandardFile" />
+        <appender-ref ref="JsonFile" />
+        <appender-ref ref="Console" />
+    </logger>
+</configuration>

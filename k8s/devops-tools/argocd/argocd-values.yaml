@@ -1,0 +1,76 @@
+# Configuración personalizada para ArgoCD en el entorno de desarrollo
+
+# --- Etiquetas Globales ---
+# Aplica la etiqueta de arquitectura a todos los recursos
+
+global:
+  additionalLabels:
+    part-of: microservices-platform
+
+# --- Configuración del Servidor de ArgoCD ---
+server:
+  # --- Exposición del Servicio ---
+  # Deshabilitamos la creación automática de un Ingress (lo crearemos manualmente con Traefik)
+  ingress:
+    enabled: false
+
+  # El servicio se expone internamente como ClusterIP. Traefik se encargará de enrutar el tráfico
+  service:
+    type: ClusterIP
+
+  # --- Configuración de Seguridad ---
+  # Deshabilitamos la gestión automática de certificados TLS de ArgoCD.
+  # La terminación TLS se realizará a nivel de Traefik.
+  extraArgs:
+    - --insecure
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+# --- Configuración de Componentes Adicionales (Opcional) ---
+
+# --- Recursos de Kubernetes ---
+# Ajustamos los recursos a un perfil más ligero para el entorno de desarrollo
+# (Estos valores son orientativos. Es posible que necesites ajustarlos)
+controller:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+repo-server:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+externalRedis:
+  # -- External Redis server host
+  host: redis.event-management.svc.cluster.local
+  # -- External Redis server port
+  port: 6379
+
+# Si no necesitas el repositorio de aplicaciones (ApplicationSet), lo desactivamos para ahorrar recursos
+applicationSet:
+  enabled: false
+
+# Si no necesitas notificaciones, también podemos desactivarlas
+notifications:
+  enabled: false
+
+dex:
+  enabled: false
+
+redis:
+  enabled: false

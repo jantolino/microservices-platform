@@ -1,0 +1,49 @@
+%% FLUJO PRINCIPAL DEL SERVICIO DE CARRITO (CART-SERVICE)
+%% ===========================================
+%% Inspirado en notification-service/principal-flow.mmd, siguiendo arquitectura hexagonal.
+%% EXPLICACIÓN DEL FLUJO:
+%% 1. Eventos o llamadas API inician operaciones sobre el carrito.
+%% 2. Casos de uso aplican políticas de negocio (crear, agregar, actualizar, quitar, validar).
+%% 3. Servicios de dominio gestionan consistencia de totales y reglas.
+%% 4. Transactional Outbox publica eventos (carrito actualizado, listo para checkout).
+%% 5. Integraciones validan precios e inventario; checkout pasa a order-service.
+%% 6. Observabilidad: métricas, trazas y auditoría en cada paso.
+
+flowchart TD
+    %% Eventos externos
+    EventoExterno[Evento Externo] --> ItemEventListener
+
+    %% Adaptadores de entrada
+    API[API Controller] --> CrearCarritoUseCase
+    API --> AgregarItemUseCase
+    API --> ActualizarCantidadUseCase
+    API --> RemoverItemUseCase
+    API --> ObtenerCarritoUseCase
+    ItemEventListener["Event Listener (precio/inventario)"] --> RevalidarCarritoUseCase
+
+    %% Casos de uso
+    CrearCarritoUseCase --> CartFactory
+    AgregarItemUseCase --> CartFactory
+    ActualizarCantidadUseCase --> CartService
+    RemoverItemUseCase --> CartService
+    RevalidarCarritoUseCase --> CartService
+    ObtenerCarritoUseCase --> CartQueryService
+    CartService --> TransactionalOutbox
+
+    %% Servicios de dominio
+    CartFactory[Cart Factory] --> CartService[Cart Domain Service]
+    CartService --> TotalesService[Totales Service]
+
+    %% Persistencia y outbox
+    CartService --> CartRepository
+    CartService --> OutboxRepository
+    TransactionalOutbox -->|Publica| EventoCarritoActualizado
+    TransactionalOutbox -->|Publica| EventoCheckoutListo
+
+    %% Integraciones
+    CartService --> PricingService[Pricing/Promos]
+    CartService --> InventoryService[Inventario/Stock]
+    EventoCheckoutListo --> OrderService
+
+    %% Observabilidad
+    CartService --> Metrics[Metrics/Tracing/Audit]

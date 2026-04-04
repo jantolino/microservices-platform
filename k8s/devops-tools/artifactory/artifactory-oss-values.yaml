@@ -1,0 +1,41 @@
+# Personalizado para tu entorno de desarrollo con base de datos externa
+
+# Agrega la etiqueta personalizada a nivel global
+commonLabels:
+  part-of: microservices-platform
+
+
+artifactory:
+
+  artifactory:
+
+    # Configuración de recursos para tu clúster de desarrollo
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "2Gi"
+      limits:
+        cpu: "500m"
+        memory: "3Gi"
+      javaOpts:
+        xms: "1g"
+        xmx: "2g"
+
+  # Configuración de la base de datos PostgreSQL externa
+  postgresql:
+    enabled: false
+
+  database:
+    type: postgresql
+    driver: org.postgresql.Driver
+    url: jdbc:postgresql://postgresql.devops-tools.svc.cluster.local:5432/artifactory
+    user: artifactory
+    password: "artifactory456"
+
+  # Desactivar la instalación automática de Nginx (usaremos Traefik)
+  nginx:
+    enabled: false
+
+  # Desactivar la creación automática de Ingress (lo haremos manualmente con Traefik)
+  ingress:
+    enabled: false

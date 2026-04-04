@@ -1,0 +1,71 @@
+%% FLUJO DE ESCALADO Y BALANCEO DE CARGA
+%% ==================================
+%% Este diagrama muestra cómo el servicio maneja picos de carga y escalado
+%% para garantizar alta disponibilidad y rendimiento.
+
+%% EXPLICACIÓN DEL FLUJO:
+%% 1. Priorización: Clasificación de notificaciones por importancia
+%% 2. Control de Flujo: Limitación de tasas para evitar sobrecarga
+%% 3. Balanceo de Carga: Distribución equitativa entre canales
+%% 4. Monitoreo: Seguimiento de métricas de rendimiento
+%% 5. Escalado Automático: Ajuste de recursos según la demanda
+
+flowchart TD
+    %% Entrada de notificaciones
+    NotificationService[Notification Service] --> PriorityQueue
+    
+    %% Cola de prioridades
+    PriorityQueue[Priority Queue] --> HighPriorityProcessor
+    PriorityQueue --> NormalPriorityProcessor
+    PriorityQueue --> LowPriorityProcessor
+    
+    %% Procesadores por prioridad
+    HighPriorityProcessor[High Priority Processor] --> RateLimiter
+    NormalPriorityProcessor[Normal Priority Processor] --> RateLimiter
+    LowPriorityProcessor[Low Priority Processor] --> RateLimiter
+    
+    %% Control de flujo
+    RateLimiter[Rate Limiter] --> LoadBalancer
+    LoadBalancer[Load Balancer] --> ChannelPool1
+    LoadBalancer --> ChannelPool2
+    LoadBalancer --> ChannelPool3
+    
+    %% Pools de canales
+    ChannelPool1[Channel Pool 1] --> EmailChannel
+    ChannelPool2[Channel Pool 2] --> SMSChannel
+    ChannelPool3[Channel Pool 3] --> PushChannel
+    
+    %% Monitoreo de carga
+    EmailChannel[Email Channel] --> ChannelMetrics
+    SMSChannel[SMS Channel] --> ChannelMetrics
+    PushChannel[Push Channel] --> ChannelMetrics
+    
+    ChannelMetrics[Channel Metrics] --> LoadMonitor
+    
+    %% Escalado automático
+    LoadMonitor[Load Monitor] --> AutoScaler
+    AutoScaler[Auto Scaler] --> ScaleUpAction
+    AutoScaler --> ScaleDownAction
+    
+    ScaleUpAction[Scale Up Action] --> KubernetesAPI
+    ScaleDownAction[Scale Down Action] --> KubernetesAPI
+    
+    KubernetesAPI[Kubernetes API] --> HorizontalPodAutoscaler
+    
+    %% Configuración dinámica
+    LoadMonitor --> ConfigurationUpdater
+    ConfigurationUpdater[Configuration Updater] --> RateLimiter
+    ConfigurationUpdater --> LoadBalancer
+    
+    %% Estilo
+    classDef service fill:#bbf,stroke:#333,stroke-width:2px
+    classDef processor fill:#bfb,stroke:#333,stroke-width:1px
+    classDef channel fill:#fbb,stroke:#333,stroke-width:1px
+    classDef monitor fill:#ffd,stroke:#333,stroke-width:1px
+    classDef kubernetes fill:#f9f,stroke:#333,stroke-width:2px
+    
+    class NotificationService service
+    class HighPriorityProcessor,NormalPriorityProcessor,LowPriorityProcessor,RateLimiter processor
+    class EmailChannel,SMSChannel,PushChannel,ChannelPool1,ChannelPool2,ChannelPool3 channel
+    class LoadMonitor,ChannelMetrics,AutoScaler monitor
+    class KubernetesAPI,HorizontalPodAutoscaler,ScaleUpAction,ScaleDownAction kubernetes

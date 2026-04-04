@@ -1,0 +1,28 @@
+sequenceDiagram
+    actor Usuario
+    participant UserService as user-service
+    participant AuthServer as auth-server
+
+    Usuario->>UserService: POST /api/users (datos usuario)
+    activate UserService
+    UserService->>AuthServer: POST /auth/register (email, password, roles)
+    activate AuthServer
+    AuthServer-->>UserService: Respuesta (éxito o error)
+    deactivate AuthServer
+    UserService->>UserService: Guardar datos adicionales (opcional)
+    UserService-->>Usuario: Respuesta final (éxito o error)
+    deactivate UserService
+
+
+sequenceDiagram
+    actor Usuario
+    participant Frontend
+    participant AuthServer
+    participant UserService
+
+    Usuario->>Frontend: Ingresa credenciales
+    Frontend->>AuthServer: POST /auth/login
+    AuthServer-->>Frontend: JWT (con roles)
+    Frontend->>UserService: Request + Header Authorization: Bearer <JWT>
+    UserService->>UserService: Valida JWT localmente (firma, expiración, roles)
+    UserService-->>Frontend: Respuesta (según permisos)

@@ -1,0 +1,37 @@
+replicas: 1
+minimumMasterNodes: 1
+
+clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
+
+clusterConfig:
+  elasticsearch.yml: |
+    cluster.routing.allocation.disk.threshold_enabled: false
+    xpack.security.enabled: true
+    xpack.security.transport.ssl.enabled: false
+    xpack.security.http.ssl.enabled: false
+
+secret:
+  enabled: true
+
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 10Gi
+
+persistence:
+  enabled: true
+
+# Definición de recursos que consumira el componente
+resources:
+  requests:
+    cpu: "100m"      # Reducir de 500m a 100m
+    memory: "1.5Gi"  # Reducir de 2Gi a 1.5Gi
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+
+esJavaOpts: "-Xmx768m -Xms768m"  # Reducir heap de 1g a 768m
+
+labels:
+  part-of: microservices-platform

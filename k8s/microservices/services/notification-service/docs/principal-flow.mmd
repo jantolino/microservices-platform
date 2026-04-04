@@ -1,0 +1,85 @@
+%% FLUJO PRINCIPAL DEL SERVICIO DE NOTIFICACIONES
+%% ===========================================
+%% Este diagrama muestra el flujo de dominio para el servicio de notificaciones
+%% siguiendo los principios de arquitectura hexagonal y patrones de diseño.
+
+%% EXPLICACIÓN DEL FLUJO:
+%% 1. Origen de Eventos: Eventos externos o solicitudes API inician el proceso
+%% 2. Casos de Uso: Implementan la lógica de negocio y políticas
+%% 3. Servicios de Dominio: Gestionan entidades y operaciones centrales
+%% 4. Patrón Transactional Outbox: Garantiza entrega confiable
+%% 5. Selección de Canal: Determina el medio de entrega apropiado
+%% 6. Entrega y Resultados: Envío, registro y métricas
+%% 7. Manejo de Errores: Dead Letter Queue y reintentos
+
+flowchart TD
+    %% Eventos externos
+    EventoExterno[Evento Externo] --> EventListener
+    
+    %% Adaptadores de entrada
+    EventListener[Event Listener] --> ProcesarEventoUseCase
+    API[API Controller] --> EnviarNotificacionUseCase
+    API --> ProgramarNotificacionUseCase
+    API --> ConsultarHistorialUseCase
+    
+    %% Casos de uso
+    ProcesarEventoUseCase[Procesar Evento Use Case] --> NotificationFactory
+    EnviarNotificacionUseCase[Enviar Notificación Use Case] --> NotificationFactory
+    ProgramarNotificacionUseCase[Programar Notificación Use Case] --> NotificationScheduler
+    
+    %% Servicios de dominio
+    NotificationFactory[Notification Factory] --> PlantillaService
+    NotificationFactory --> NotificationService
+    NotificationScheduler[Notification Scheduler] --> NotificationService
+    
+    %% Entidades y servicios principales
+    PlantillaService[Plantilla Service] --> PlantillaRepository
+    NotificationService[Notification Service] --> OutboxRepository
+    NotificationService --> PreferenciasRepository
+    
+    %% Adaptadores de salida
+    OutboxRepository[Outbox Repository] --> OutboxProcessor
+    OutboxProcessor[Outbox Processor] --> ChannelSelector
+    
+    %% Canales de notificación
+    ChannelSelector[Channel Selector] --> EmailChannel
+    ChannelSelector --> SMSChannel
+    ChannelSelector --> PushChannel
+    ChannelSelector --> InAppChannel
+    
+    %% Resultados y monitoreo
+    EmailChannel[Email Channel] --> DeliveryResult
+    SMSChannel[SMS Channel] --> DeliveryResult
+    PushChannel[Push Channel] --> DeliveryResult
+    InAppChannel[In-App Channel] --> DeliveryResult
+    
+    DeliveryResult[Delivery Result] --> NotificationHistoryRepository
+    DeliveryResult --> MetricsCollector
+    DeliveryResult --> AuditLogger
+    
+    %% Repositorios
+    PlantillaRepository[(Plantilla Repository)]
+    PreferenciasRepository[(Preferencias Repository)]
+    NotificationHistoryRepository[(Notification History Repository)]
+    
+    %% Observabilidad
+    MetricsCollector[Metrics Collector] --> PrometheusExporter
+    AuditLogger[Audit Logger] --> LogAggregator
+    
+    %% Manejo de errores
+    DeliveryResult --> |Error| DeadLetterQueue
+    DeadLetterQueue[Dead Letter Queue] --> RetryProcessor
+    RetryProcessor[Retry Processor] --> |Reintento| ChannelSelector
+    
+    %% Estilo
+    classDef usecase fill:#f9f,stroke:#333,stroke-width:2px
+    classDef domain fill:#bbf,stroke:#333,stroke-width:2px
+    classDef repository fill:#bfb,stroke:#333,stroke-width:1px
+    classDef adapter fill:#fbb,stroke:#333,stroke-width:1px
+    classDef observability fill:#ffb,stroke:#333,stroke-width:1px
+    
+    class EnviarNotificacionUseCase,ProcesarEventoUseCase,ProgramarNotificacionUseCase,ConsultarHistorialUseCase usecase
+    class NotificationService,PlantillaService,NotificationFactory,NotificationScheduler domain
+    class PlantillaRepository,PreferenciasRepository,OutboxRepository,NotificationHistoryRepository repository
+    class EventListener,API,EmailChannel,SMSChannel,PushChannel,InAppChannel,OutboxProcessor,ChannelSelector adapter
+    class MetricsCollector,AuditLogger,PrometheusExporter,LogAggregator,DeadLetterQueue,RetryProcessor observability

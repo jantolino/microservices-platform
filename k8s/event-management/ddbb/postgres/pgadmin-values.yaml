@@ -1,0 +1,67 @@
+commonLabels:
+  part-of: microservices-platform
+
+image:
+  repository: dpage/pgadmin4
+  tag: "9.13"
+  pullPolicy: IfNotPresent
+
+env:
+  email: "admin@example.com"           # Cambia a un dominio real si es necesario
+  password: "pgadmin123"
+  enhanced_cookie_protection: "False"
+
+serverDefinitions:
+  enabled: true
+  servers:
+    dev-postgres:
+      Name: "PostgreSQL - devops-tools"
+      Group: "Servers"
+      Port: 5432
+      Username: "postgres"
+      Password: "postgres123"
+      Host: "postgresql.devops-tools.svc.cluster.local"
+      SSLMode: "prefer"
+      MaintenanceDB: "postgres"
+
+persistentVolume:
+  enabled: true
+  size: 1Gi
+  storageClass: "standard"
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+
+# Aumentar recursos
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+# Desactivar startup probe (no es crítica) y ajustar las sondas
+startupProbe: {}
+
+readinessProbe:
+  httpGet:
+    path: /misc/ping
+    port: 80
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+livenessProbe:
+  httpGet:
+    path: /misc/ping
+    port: 80
+  initialDelaySeconds: 120
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3

@@ -1,0 +1,74 @@
+graph TD
+
+  %% Usuario
+  subgraph USR [Usuario]
+    U[Usuario]
+    C[Catálogo]
+    Cart[Carrito]
+    Order[Pedido]
+    Notif[Notificaciones]
+    Rec[Recomendaciones]
+    Track[Rastreo]
+    Support[Soporte]
+    Rate[Valoración]
+    Profile[Perfil]
+    History[Historial de compras]
+    Return[Devoluciones]
+    Address[Direcciones]
+    PayMethods[Métodos de pago]
+  end
+
+  U -->|Busca| C
+  U -->|Agrega al carrito| Cart
+  U -->|Compra| Order
+  U -->|Recibe notificaciones| Notif
+  U -->|Recibe recomendaciones| Rec
+  U -->|Consulta estado| Track
+  U -->|Contacta soporte| Support
+  U -->|Valora| Rate
+  U -->|Gestiona perfil| Profile
+  U -->|Consulta historial| History
+  U -->|Gestiona devoluciones| Return
+  U -->|Gestiona direcciones| Address
+  U -->|Gestiona métodos de pago| PayMethods
+
+  %% Administrador
+  subgraph ADM [Administrador]
+    Admin[Administrador]
+    AdminPanel[Panel Admin]
+    Prod[Productos]
+    Users[Usuarios]
+    Reports[Reportes]
+    Promo[Promociones]
+    Inv[Inventario]
+    Billing[Facturación]
+    Ship[Envíos]
+    Security[Seguridad]
+    Audit[Auditoría]
+    Payments[Pagos]
+    Integration[Integraciones]
+  end
+
+  Admin -->|Gestiona| AdminPanel
+  AdminPanel -->|Gestiona productos| Prod
+  AdminPanel -->|Gestiona usuarios| Users
+  AdminPanel -->|Gestiona reportes| Reports
+  AdminPanel -->|Gestiona promociones| Promo
+  AdminPanel -->|Gestiona soporte| Support
+  AdminPanel -->|Gestiona inventario| Inv
+  AdminPanel -->|Gestiona facturación| Billing
+  AdminPanel -->|Gestiona envíos| Ship
+  AdminPanel -->|Gestiona catálogo| C
+  AdminPanel -->|Gestiona recomendaciones| Rec
+  AdminPanel -->|Gestiona notificaciones| Notif
+  AdminPanel -->|Gestiona devoluciones| Return
+  AdminPanel -->|Gestiona pagos| Payments
+  AdminPanel -->|Gestiona seguridad| Security
+  AdminPanel -->|Audita| Audit
+  AdminPanel -->|Gestiona integraciones| Integration
+
+  %% Relaciones de negocio
+  Order -->|Genera| Billing
+  Order -->|Integra| Integration
+  Billing -->|Procesa pagos| Payments
+  Track -->|Consulta logística| Integration

@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jaeger-ui-route
+  namespace: monitoring
+  labels:
+    part-of: microservices-platform
+spec:
+  entryPoints:
+    - web
+  routes:
+  - match: Host(`jaeger.desarrollo`)
+    kind: Rule
+    services:
+    - name: jaeger
+      port: 16686

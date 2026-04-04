@@ -1,0 +1,445 @@
+2025-05-31 18:01:15,475 [background-preinit] INFO  o.h.validator.internal.util.Version                - HV000001: Hibernate Validator 8.0.2.Final
+2025-05-31 18:01:15,510 [main] INFO  e.m.userservice.UserServiceApplication             - Starting UserServiceApplication using Java 21 with PID 19096 (C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service\target\classes started by ja2c in C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service)
+2025-05-31 18:01:15,511 [main] DEBUG e.m.userservice.UserServiceApplication             - Running with Spring Boot v3.4.5, Spring v6.2.6
+2025-05-31 18:01:15,512 [main] INFO  e.m.userservice.UserServiceApplication             - The following 1 profile is active: "dev"
+2025-05-31 18:01:15,538 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:01:15,538 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:01:15,538 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@515f4131 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'default']): I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information
+2025-05-31 18:01:15,539 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:01:15,539 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/dev": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:01:15,539 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@2a415aa9 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'dev']): I/O error on GET request for "http://localhost:8890/user-service/dev": Connection refused: no further information
+2025-05-31 18:01:15,539 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:01:15,539 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:01:15,539 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@53cdecf6 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'default']): I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information
+2025-05-31 18:01:16,038 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.support.BeanDefinitionOverrideException: Invalid bean definition with name 'refreshTokenUseCase' defined in class path resource [edu/market/userservice/infrastructure/config/BeansConfig.class]: Cannot register bean definition [Root bean: class=null; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=beansConfig; factoryMethodName=refreshTokenUseCase; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [edu/market/userservice/infrastructure/config/BeansConfig.class]] for bean 'refreshTokenUseCase' since there is already [Generic bean: class=edu.market.userservice.application.usecase.auth.RefreshTokenUseCase; scope=singleton; abstract=false; lazyInit=null; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; fallback=false; factoryBeanName=null; factoryMethodName=null; initMethodNames=null; destroyMethodNames=null; defined in file [C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service\target\classes\edu\market\userservice\application\usecase\auth\RefreshTokenUseCase.class]] bound.
+2025-05-31 18:01:16,044 [main] INFO  o.s.b.a.l.ConditionEvaluationReportLogger          - 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-05-31 18:01:16,058 [main] ERROR o.s.b.d.LoggingFailureAnalysisReporter             - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+The bean 'refreshTokenUseCase', defined in class path resource [edu/market/userservice/infrastructure/config/BeansConfig.class], could not be registered. A bean with that name has already been defined in file [C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service\target\classes\edu\market\userservice\application\usecase\auth\RefreshTokenUseCase.class] and overriding is disabled.
+
+Action:
+
+Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+
+2025-05-31 18:05:48,905 [background-preinit] INFO  o.h.validator.internal.util.Version                - HV000001: Hibernate Validator 8.0.2.Final
+2025-05-31 18:05:48,939 [main] INFO  e.m.userservice.UserServiceApplication             - Starting UserServiceApplication using Java 21 with PID 8836 (C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service\target\classes started by ja2c in C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service)
+2025-05-31 18:05:48,939 [main] DEBUG e.m.userservice.UserServiceApplication             - Running with Spring Boot v3.4.5, Spring v6.2.6
+2025-05-31 18:05:48,940 [main] INFO  e.m.userservice.UserServiceApplication             - The following 1 profile is active: "dev"
+2025-05-31 18:05:48,966 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:05:48,966 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:05:48,966 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@515f4131 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'default']): I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information
+2025-05-31 18:05:48,966 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:05:48,966 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/dev": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:05:48,966 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@2a415aa9 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'dev']): I/O error on GET request for "http://localhost:8890/user-service/dev": Connection refused: no further information
+2025-05-31 18:05:48,967 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:05:48,967 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:05:48,967 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@53cdecf6 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'default']): I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information
+2025-05-31 18:05:49,601 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate          - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-05-31 18:05:49,722 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate          - Finished Spring Data repository scanning in 113 ms. Found 4 JPA repository interfaces.
+2025-05-31 18:05:49,966 [main] INFO  o.s.cloud.context.scope.GenericScope               - BeanFactory id=dbd3c83b-d654-3539-9c6f-1bfda034a2e1
+2025-05-31 18:05:50,526 [main] INFO  o.s.b.w.embedded.tomcat.TomcatWebServer            - Tomcat initialized with port 8080 (http)
+2025-05-31 18:05:50,534 [main] INFO  o.apache.coyote.http11.Http11NioProtocol           - Initializing ProtocolHandler ["http-nio-8080"]
+2025-05-31 18:05:50,536 [main] INFO  o.apache.catalina.core.StandardService             - Starting service [Tomcat]
+2025-05-31 18:05:50,536 [main] INFO  org.apache.catalina.core.StandardEngine            - Starting Servlet engine: [Apache Tomcat/10.1.40]
+2025-05-31 18:05:50,592 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/]                 - Initializing Spring embedded WebApplicationContext
+2025-05-31 18:05:50,592 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext     - Root WebApplicationContext: initialization completed in 1624 ms
+2025-05-31 18:05:50,759 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Starting...
+2025-05-31 18:05:50,956 [main] INFO  com.zaxxer.hikari.pool.HikariPool                  - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:userdb user=SA
+2025-05-31 18:05:50,958 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Start completed.
+2025-05-31 18:05:51,165 [main] INFO  o.hibernate.jpa.internal.util.LogHelper            - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-05-31 18:05:51,256 [main] INFO  org.hibernate.Version                              - HHH000412: Hibernate ORM core version 6.6.13.Final
+2025-05-31 18:05:51,320 [main] INFO  o.h.c.internal.RegionFactoryInitiator              - HHH000026: Second-level cache disabled
+2025-05-31 18:05:51,519 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo                - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-05-31 18:05:51,566 [main] INFO  org.hibernate.orm.connections.pooling              - HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-05-31 18:05:52,252 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator                 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-05-31 18:05:52,329 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean     - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-05-31 18:05:52,348 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'authController' defined in file [C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service\target\classes\edu\market\userservice\infrastructure\adapter\input\web\AuthController.class]: Unsatisfied dependency expressed through constructor parameter 0: No qualifying bean of type 'edu.market.userservice.application.usecase.auth.LoginUserUseCase' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2025-05-31 18:05:52,348 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean     - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-05-31 18:05:52,350 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Shutdown initiated...
+2025-05-31 18:05:52,352 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Shutdown completed.
+2025-05-31 18:05:52,353 [main] INFO  o.apache.catalina.core.StandardService             - Stopping service [Tomcat]
+2025-05-31 18:05:52,362 [main] INFO  o.s.b.a.l.ConditionEvaluationReportLogger          - 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-05-31 18:05:52,383 [main] ERROR o.s.b.d.LoggingFailureAnalysisReporter             - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 0 of constructor in edu.market.userservice.infrastructure.adapter.input.web.AuthController required a bean of type 'edu.market.userservice.application.usecase.auth.LoginUserUseCase' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'edu.market.userservice.application.usecase.auth.LoginUserUseCase' in your configuration.
+
+2025-05-31 18:08:24,110 [background-preinit] INFO  o.h.validator.internal.util.Version                - HV000001: Hibernate Validator 8.0.2.Final
+2025-05-31 18:08:24,146 [main] INFO  e.m.userservice.UserServiceApplication             - Starting UserServiceApplication using Java 21 with PID 19780 (C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service\target\classes started by ja2c in C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service)
+2025-05-31 18:08:24,146 [main] DEBUG e.m.userservice.UserServiceApplication             - Running with Spring Boot v3.4.5, Spring v6.2.6
+2025-05-31 18:08:24,147 [main] INFO  e.m.userservice.UserServiceApplication             - The following 1 profile is active: "dev"
+2025-05-31 18:08:24,175 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:08:24,175 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:08:24,175 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@515f4131 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'default']): I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information
+2025-05-31 18:08:24,175 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:08:24,175 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/dev": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:08:24,175 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@2a415aa9 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'dev']): I/O error on GET request for "http://localhost:8890/user-service/dev": Connection refused: no further information
+2025-05-31 18:08:24,176 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:08:24,176 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:08:24,176 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@53cdecf6 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'default']): I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information
+2025-05-31 18:08:24,846 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate          - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-05-31 18:08:24,991 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate          - Finished Spring Data repository scanning in 131 ms. Found 4 JPA repository interfaces.
+2025-05-31 18:08:25,212 [main] INFO  o.s.cloud.context.scope.GenericScope               - BeanFactory id=dbd3c83b-d654-3539-9c6f-1bfda034a2e1
+2025-05-31 18:08:25,776 [main] INFO  o.s.b.w.embedded.tomcat.TomcatWebServer            - Tomcat initialized with port 8080 (http)
+2025-05-31 18:08:25,787 [main] INFO  o.apache.coyote.http11.Http11NioProtocol           - Initializing ProtocolHandler ["http-nio-8080"]
+2025-05-31 18:08:25,789 [main] INFO  o.apache.catalina.core.StandardService             - Starting service [Tomcat]
+2025-05-31 18:08:25,789 [main] INFO  org.apache.catalina.core.StandardEngine            - Starting Servlet engine: [Apache Tomcat/10.1.40]
+2025-05-31 18:08:25,844 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/]                 - Initializing Spring embedded WebApplicationContext
+2025-05-31 18:08:25,845 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext     - Root WebApplicationContext: initialization completed in 1668 ms
+2025-05-31 18:08:26,008 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Starting...
+2025-05-31 18:08:26,176 [main] INFO  com.zaxxer.hikari.pool.HikariPool                  - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:userdb user=SA
+2025-05-31 18:08:26,177 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Start completed.
+2025-05-31 18:08:26,436 [main] INFO  o.hibernate.jpa.internal.util.LogHelper            - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-05-31 18:08:26,566 [main] INFO  org.hibernate.Version                              - HHH000412: Hibernate ORM core version 6.6.13.Final
+2025-05-31 18:08:26,652 [main] INFO  o.h.c.internal.RegionFactoryInitiator              - HHH000026: Second-level cache disabled
+2025-05-31 18:08:26,955 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo                - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-05-31 18:08:27,002 [main] INFO  org.hibernate.orm.connections.pooling              - HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-05-31 18:08:27,686 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator                 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-05-31 18:08:27,766 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean     - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-05-31 18:08:28,386 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory               - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-05-31 18:08:28,986 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'authController' defined in file [C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service\target\classes\edu\market\userservice\infrastructure\adapter\input\web\AuthController.class]: Unsatisfied dependency expressed through constructor parameter 4: No qualifying bean of type 'edu.market.userservice.infrastructure.adapter.input.web.mapper.AuthRequestMapper' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2025-05-31 18:08:28,987 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean     - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-05-31 18:08:28,989 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Shutdown initiated...
+2025-05-31 18:08:28,991 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Shutdown completed.
+2025-05-31 18:08:28,994 [main] INFO  o.apache.catalina.core.StandardService             - Stopping service [Tomcat]
+2025-05-31 18:08:29,006 [main] INFO  o.s.b.a.l.ConditionEvaluationReportLogger          - 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-05-31 18:08:29,023 [main] ERROR o.s.b.d.LoggingFailureAnalysisReporter             - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 4 of constructor in edu.market.userservice.infrastructure.adapter.input.web.AuthController required a bean of type 'edu.market.userservice.infrastructure.adapter.input.web.mapper.AuthRequestMapper' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'edu.market.userservice.infrastructure.adapter.input.web.mapper.AuthRequestMapper' in your configuration.
+
+2025-05-31 18:09:26,672 [background-preinit] INFO  o.h.validator.internal.util.Version                - HV000001: Hibernate Validator 8.0.2.Final
+2025-05-31 18:09:26,706 [main] INFO  e.m.userservice.UserServiceApplication             - Starting UserServiceApplication using Java 21 with PID 15912 (C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service\target\classes started by ja2c in C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service)
+2025-05-31 18:09:26,707 [main] DEBUG e.m.userservice.UserServiceApplication             - Running with Spring Boot v3.4.5, Spring v6.2.6
+2025-05-31 18:09:26,707 [main] INFO  e.m.userservice.UserServiceApplication             - The following 1 profile is active: "dev"
+2025-05-31 18:09:26,734 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:09:26,735 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:09:26,735 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@515f4131 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'default']): I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information
+2025-05-31 18:09:26,735 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:09:26,736 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/dev": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:09:26,736 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@2a415aa9 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'dev']): I/O error on GET request for "http://localhost:8890/user-service/dev": Connection refused: no further information
+2025-05-31 18:09:26,736 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:09:26,736 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:09:26,736 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@53cdecf6 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'default']): I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information
+2025-05-31 18:09:27,414 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate          - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-05-31 18:09:27,542 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate          - Finished Spring Data repository scanning in 120 ms. Found 4 JPA repository interfaces.
+2025-05-31 18:09:27,790 [main] INFO  o.s.cloud.context.scope.GenericScope               - BeanFactory id=4c00d714-1d02-3e7c-ae95-5d33c4391901
+2025-05-31 18:09:28,369 [main] INFO  o.s.b.w.embedded.tomcat.TomcatWebServer            - Tomcat initialized with port 8080 (http)
+2025-05-31 18:09:28,378 [main] INFO  o.apache.coyote.http11.Http11NioProtocol           - Initializing ProtocolHandler ["http-nio-8080"]
+2025-05-31 18:09:28,380 [main] INFO  o.apache.catalina.core.StandardService             - Starting service [Tomcat]
+2025-05-31 18:09:28,381 [main] INFO  org.apache.catalina.core.StandardEngine            - Starting Servlet engine: [Apache Tomcat/10.1.40]
+2025-05-31 18:09:28,437 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/]                 - Initializing Spring embedded WebApplicationContext
+2025-05-31 18:09:28,438 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext     - Root WebApplicationContext: initialization completed in 1697 ms
+2025-05-31 18:09:28,588 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Starting...
+2025-05-31 18:09:28,757 [main] INFO  com.zaxxer.hikari.pool.HikariPool                  - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:userdb user=SA
+2025-05-31 18:09:28,759 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Start completed.
+2025-05-31 18:09:28,941 [main] INFO  o.hibernate.jpa.internal.util.LogHelper            - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-05-31 18:09:29,025 [main] INFO  org.hibernate.Version                              - HHH000412: Hibernate ORM core version 6.6.13.Final
+2025-05-31 18:09:29,078 [main] INFO  o.h.c.internal.RegionFactoryInitiator              - HHH000026: Second-level cache disabled
+2025-05-31 18:09:29,289 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo                - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-05-31 18:09:29,336 [main] INFO  org.hibernate.orm.connections.pooling              - HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-05-31 18:09:30,039 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator                 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-05-31 18:09:30,116 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean     - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-05-31 18:09:30,717 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory               - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-05-31 18:09:31,577 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-05-31 18:09:32,440 [main] INFO  o.s.b.a.h2.H2ConsoleAutoConfiguration              - H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:userdb'
+2025-05-31 18:09:32,638 [main] INFO  o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration - Eureka HTTP Client uses RestTemplate.
+2025-05-31 18:09:32,693 [main] WARN  o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger - Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2025-05-31 18:09:32,724 [main] INFO  o.s.c.netflix.eureka.InstanceInfoFactory           - Setting initial instance status as: STARTING
+2025-05-31 18:09:32,741 [main] INFO  com.netflix.discovery.DiscoveryClient              - Initializing Eureka in region us-east-1
+2025-05-31 18:09:32,741 [main] INFO  com.netflix.discovery.DiscoveryClient              - Client configured to neither register nor query for data.
+2025-05-31 18:09:32,742 [main] INFO  com.netflix.discovery.DiscoveryClient              - Discovery Client initialized at timestamp 1748729372742 with initial instances count: 0
+2025-05-31 18:09:32,746 [main] INFO  o.s.c.n.e.s.EurekaServiceRegistry                  - Registering application USER-SERVICE with eureka with status UP
+2025-05-31 18:09:32,748 [main] INFO  o.apache.coyote.http11.Http11NioProtocol           - Starting ProtocolHandler ["http-nio-8080"]
+2025-05-31 18:09:32,761 [main] INFO  o.s.b.w.embedded.tomcat.TomcatWebServer            - Tomcat started on port 8080 (http) with context path '/'
+2025-05-31 18:09:32,762 [main] INFO  o.s.c.n.e.s.EurekaAutoServiceRegistration          - Updating port to 8080
+2025-05-31 18:09:32,771 [main] INFO  e.m.userservice.UserServiceApplication             - Started UserServiceApplication in 6.86 seconds (process running for 7.27)
+2025-05-31 18:10:24,685 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/]                 - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-31 18:10:24,685 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet                  - Initializing Servlet 'dispatcherServlet'
+2025-05-31 18:10:24,686 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet                  - Completed initialization in 1 ms
+2025-05-31 18:10:25,245 [http-nio-8080-exec-9] INFO  o.springdoc.api.AbstractOpenApiResource            - Init duration for springdoc-openapi is: 277 ms
+2025-05-31 18:10:31,755 [http-nio-8080-exec-10] INFO  e.m.u.i.adapter.input.web.AuthController           - Recibida solicitud de login para el usuario: admin@example.com
+2025-05-31 18:10:31,755 [http-nio-8080-exec-10] DEBUG e.m.u.i.adapter.input.web.AuthController           - Dirección IP del cliente: 0:0:0:0:0:0:0:1
+2025-05-31 18:10:31,758 [http-nio-8080-exec-10] DEBUG e.m.u.i.aspect.TransactionAspect                   - Iniciando transacción para LoginUserUseCase.execute con argumentos: [LoginCredentialsVO{email='admin@example.com', password='[PROTECTED]', ipAddress='0:0:0:0:0:0:0:1', userAgent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'}]
+2025-05-31 18:10:31,763 [http-nio-8080-exec-10] INFO  e.m.u.i.aspect.LoggingAspect                       - Iniciando LoginUserUseCase.execute
+2025-05-31 18:10:31,763 [http-nio-8080-exec-10] DEBUG e.m.u.i.aspect.LoggingAspect                       - Iniciando ejecución de LoginUserUseCase.execute con argumentos: [LoginCredentialsVO{email='admin@example.com', password='[PROTECTED]', ipAddress='0:0:0:0:0:0:0:1', userAgent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'}]
+2025-05-31 18:10:31,763 [http-nio-8080-exec-10] INFO  e.m.u.a.usecase.auth.LoginUserUseCase              - init - execute
+2025-05-31 18:10:31,763 [http-nio-8080-exec-10] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute find user by email: admin@example.com
+2025-05-31 18:10:31,765 [http-nio-8080-exec-10] INFO  e.m.u.i.a.o.p.JpaUserRepository                    - init - findByEmail
+2025-05-31 18:10:31,765 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaUserRepository                    - findByEmail searching user with email: admin@example.com
+2025-05-31 18:10:31,856 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaUserRepository                    - findByEmail user found in database with ID: 1
+2025-05-31 18:10:31,856 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para user entity ID: 1
+2025-05-31 18:10:31,869 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para role entity ID: 4
+2025-05-31 18:10:31,869 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para role entity ID: 4
+2025-05-31 18:10:31,870 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para role entity ID: 2
+2025-05-31 18:10:31,870 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para role entity ID: 2
+2025-05-31 18:10:31,870 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para role entity ID: 3
+2025-05-31 18:10:31,870 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para role entity ID: 3
+2025-05-31 18:10:31,870 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para role entity ID: 1
+2025-05-31 18:10:31,871 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para role entity ID: 1
+2025-05-31 18:10:31,871 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para user entity ID: 1
+2025-05-31 18:10:31,871 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaUserRepository                    - findByEmail user mapped successfully with ID: 1
+2025-05-31 18:10:31,871 [http-nio-8080-exec-10] INFO  e.m.u.i.a.o.p.JpaUserRepository                    - end - findByEmail
+2025-05-31 18:10:31,871 [http-nio-8080-exec-10] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute user found with ID: 1
+2025-05-31 18:10:31,871 [http-nio-8080-exec-10] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute validating credentials for user: 1
+2025-05-31 18:10:31,871 [http-nio-8080-exec-10] DEBUG e.m.u.i.aspect.LoggingAspect                       - Iniciando ejecución de AuthDomainService.validateCredentials con argumentos: [edu.market.userservice.domain.model.User@18d87cce, password, org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder@460fe6e3]
+2025-05-31 18:10:31,872 [http-nio-8080-exec-10] INFO  e.m.u.domain.service.AuthDomainService             - init - validateCredentials
+2025-05-31 18:10:31,872 [http-nio-8080-exec-10] DEBUG e.m.u.domain.service.AuthDomainService             - validateCredentials validating password for user: 1
+2025-05-31 18:10:31,928 [http-nio-8080-exec-10] DEBUG e.m.u.domain.service.AuthDomainService             - validateCredentials password is valid for user: 1
+2025-05-31 18:10:31,928 [http-nio-8080-exec-10] INFO  e.m.u.domain.service.AuthDomainService             - end - validateCredentials
+2025-05-31 18:10:31,928 [http-nio-8080-exec-10] DEBUG e.m.u.i.aspect.LoggingAspect                       - Finalizada ejecución de AuthDomainService.validateCredentials con resultado: true
+2025-05-31 18:10:31,928 [http-nio-8080-exec-10] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute registering successful login for user: 1
+2025-05-31 18:10:31,929 [http-nio-8080-exec-10] INFO  e.m.u.i.a.o.p.JpaUserRepository                    - init - save
+2025-05-31 18:10:31,929 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaUserRepository                    - save processing user with email: admin@example.com
+2025-05-31 18:10:31,929 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toEntity para user ID: 1
+2025-05-31 18:10:31,940 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para user entity ID: 1
+2025-05-31 18:10:31,940 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para user entity ID: 1
+2025-05-31 18:10:31,940 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaUserRepository                    - save user saved successfully with ID: 1
+2025-05-31 18:10:31,940 [http-nio-8080-exec-10] INFO  e.m.u.i.a.o.p.JpaUserRepository                    - end - save
+2025-05-31 18:10:31,940 [http-nio-8080-exec-10] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute creating login metadata for user: 1
+2025-05-31 18:10:31,941 [http-nio-8080-exec-10] DEBUG e.m.u.i.aspect.LoggingAspect                       - Iniciando ejecución de AuthDomainService.createLoginMetadata con argumentos: [edu.market.userservice.domain.model.User@18d87cce, 0:0:0:0:0:0:0:1, Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36]
+2025-05-31 18:10:31,941 [http-nio-8080-exec-10] DEBUG e.m.u.i.aspect.LoggingAspect                       - Finalizada ejecución de AuthDomainService.createLoginMetadata con resultado: edu.market.userservice.domain.model.MetadataLogin@4be79383
+2025-05-31 18:10:31,941 [http-nio-8080-exec-10] INFO  e.m.u.i.a.o.p.JpaMetadataLoginRepository           - init - save
+2025-05-31 18:10:31,941 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaMetadataLoginRepository           - save finding user with ID: 1
+2025-05-31 18:10:31,943 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaMetadataLoginRepository           - save user found with ID: 1, saving metadata
+2025-05-31 18:10:31,943 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.MetadataLoginMapper           - init - toEntity para metadataLogin ID: null
+2025-05-31 18:10:31,943 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.MetadataLoginMapper           - end - toEntity para metadataLogin ID: null
+2025-05-31 18:10:31,958 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.MetadataLoginMapper           - init - toDomain para metadataLogin entity ID: 1
+2025-05-31 18:10:31,958 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.MetadataLoginMapper           - end - toDomain para metadataLogin entity ID: 1
+2025-05-31 18:10:31,958 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaMetadataLoginRepository           - save metadata saved successfully with ID: 1
+2025-05-31 18:10:31,959 [http-nio-8080-exec-10] INFO  e.m.u.i.a.o.p.JpaMetadataLoginRepository           - end - save
+2025-05-31 18:10:31,959 [http-nio-8080-exec-10] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute generating authentication token for user: 1
+2025-05-31 18:10:31,959 [http-nio-8080-exec-10] DEBUG e.m.u.i.aspect.LoggingAspect                       - Iniciando ejecución de TokenDomainService.generateToken con argumentos: [edu.market.userservice.domain.model.User@18d87cce]
+2025-05-31 18:10:31,959 [http-nio-8080-exec-10] INFO  e.m.u.domain.service.TokenDomainService            - init - generateToken
+2025-05-31 18:10:31,959 [http-nio-8080-exec-10] DEBUG e.m.u.domain.service.TokenDomainService            - generateToken creating access token for user: 1
+2025-05-31 18:10:31,959 [http-nio-8080-exec-10] DEBUG e.m.u.domain.service.TokenDomainService            - generateToken creating refresh token for user: 1
+2025-05-31 18:10:31,959 [http-nio-8080-exec-10] DEBUG e.m.u.domain.service.TokenDomainService            - generateToken setting expiration times: access=2025-05-31T19:10:31.959318900, refresh=2025-06-07T18:10:31.959318900
+2025-05-31 18:10:31,959 [http-nio-8080-exec-10] DEBUG e.m.u.domain.service.TokenDomainService            - generateToken building UserAuthToken object
+2025-05-31 18:10:31,960 [http-nio-8080-exec-10] INFO  e.m.u.domain.service.TokenDomainService            - end - generateToken
+2025-05-31 18:10:31,960 [http-nio-8080-exec-10] DEBUG e.m.u.i.aspect.LoggingAspect                       - Finalizada ejecución de TokenDomainService.generateToken con resultado: edu.market.userservice.domain.model.UserAuthToken@5ad5d56d
+2025-05-31 18:10:31,960 [http-nio-8080-exec-10] INFO  e.m.u.i.a.o.p.JpaUserAuthTokenRepository           - init - save
+2025-05-31 18:10:31,960 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaUserAuthTokenRepository           - save finding user with ID: 1
+2025-05-31 18:10:31,960 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaUserAuthTokenRepository           - save user found with ID: 1, saving token
+2025-05-31 18:10:31,960 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - init - toEntity para token ID: null con usuario ID: 1
+2025-05-31 18:10:31,960 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - init - toEntity para token ID: null
+2025-05-31 18:10:31,960 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - end - toEntity para token ID: null
+2025-05-31 18:10:31,961 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - end - toEntity para token ID: null con usuario ID: 1
+2025-05-31 18:10:31,963 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - init - toDomainModel para token entity ID: 1
+2025-05-31 18:10:31,963 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - end - toDomainModel para token entity ID: 1
+2025-05-31 18:10:31,963 [http-nio-8080-exec-10] DEBUG e.m.u.i.a.o.p.JpaUserAuthTokenRepository           - save token saved successfully with ID: 1
+2025-05-31 18:10:31,963 [http-nio-8080-exec-10] INFO  e.m.u.i.a.o.p.JpaUserAuthTokenRepository           - end - save
+2025-05-31 18:10:31,963 [http-nio-8080-exec-10] INFO  e.m.u.a.usecase.auth.LoginUserUseCase              - end - execute
+2025-05-31 18:10:31,963 [http-nio-8080-exec-10] DEBUG e.m.u.i.aspect.LoggingAspect                       - Finalizada ejecución de LoginUserUseCase.execute con resultado: edu.market.userservice.domain.model.UserAuthToken@140ee712
+2025-05-31 18:10:31,963 [http-nio-8080-exec-10] INFO  e.m.u.i.aspect.LoggingAspect                       - Completado LoginUserUseCase.execute en 200 ms
+2025-05-31 18:10:31,963 [http-nio-8080-exec-10] DEBUG e.m.u.i.aspect.TransactionAspect                   - Transacción exitosa para LoginUserUseCase.execute
+2025-05-31 18:10:31,978 [http-nio-8080-exec-10] WARN  o.h.engine.jdbc.spi.SqlExceptionHelper             - SQL Error: 23502, SQLState: 23502
+2025-05-31 18:10:31,978 [http-nio-8080-exec-10] ERROR o.h.engine.jdbc.spi.SqlExceptionHelper             - La columna "NAME" no permite valores nulos (NULL)
+NULL not allowed for column "NAME"; SQL statement:
+update users set account_non_expired=?,account_non_locked=?,created_at=?,credentials_non_expired=?,email=?,enabled=?,first_name=?,last_login_at=?,last_name=?,name=?,password=?,phone=?,picture_url=?,provider=?,provider_id=?,updated_at=? where id=? [23502-232]
+2025-05-31 18:10:31,983 [http-nio-8080-exec-10] ERROR e.m.u.i.aspect.TransactionAspect                   - Transacción fallida para LoginUserUseCase.execute: could not execute statement [La columna "NAME" no permite valores nulos (NULL)
+NULL not allowed for column "NAME"; SQL statement:
+update users set account_non_expired=?,account_non_locked=?,created_at=?,credentials_non_expired=?,email=?,enabled=?,first_name=?,last_login_at=?,last_name=?,name=?,password=?,phone=?,picture_url=?,provider=?,provider_id=?,updated_at=? where id=? [23502-232]] [update users set account_non_expired=?,account_non_locked=?,created_at=?,credentials_non_expired=?,email=?,enabled=?,first_name=?,last_login_at=?,last_name=?,name=?,password=?,phone=?,picture_url=?,provider=?,provider_id=?,updated_at=? where id=?]; SQL [update users set account_non_expired=?,account_non_locked=?,created_at=?,credentials_non_expired=?,email=?,enabled=?,first_name=?,last_login_at=?,last_name=?,name=?,password=?,phone=?,picture_url=?,provider=?,provider_id=?,updated_at=? where id=?]; constraint [null]
+2025-05-31 18:10:31,983 [http-nio-8080-exec-10] ERROR e.m.u.i.adapter.input.web.AuthController           - Error durante el proceso de login para el usuario: admin@example.com: could not execute statement [La columna "NAME" no permite valores nulos (NULL)
+NULL not allowed for column "NAME"; SQL statement:
+update users set account_non_expired=?,account_non_locked=?,created_at=?,credentials_non_expired=?,email=?,enabled=?,first_name=?,last_login_at=?,last_name=?,name=?,password=?,phone=?,picture_url=?,provider=?,provider_id=?,updated_at=? where id=? [23502-232]] [update users set account_non_expired=?,account_non_locked=?,created_at=?,credentials_non_expired=?,email=?,enabled=?,first_name=?,last_login_at=?,last_name=?,name=?,password=?,phone=?,picture_url=?,provider=?,provider_id=?,updated_at=? where id=?]; SQL [update users set account_non_expired=?,account_non_locked=?,created_at=?,credentials_non_expired=?,email=?,enabled=?,first_name=?,last_login_at=?,last_name=?,name=?,password=?,phone=?,picture_url=?,provider=?,provider_id=?,updated_at=? where id=?]; constraint [null]
+2025-05-31 18:16:06,446 [SpringApplicationShutdownHook] INFO  o.s.c.n.e.s.EurekaServiceRegistry                  - Unregistering application USER-SERVICE with eureka with status DOWN
+2025-05-31 18:16:06,449 [SpringApplicationShutdownHook] INFO  o.s.b.w.embedded.tomcat.GracefulShutdown           - Commencing graceful shutdown. Waiting for active requests to complete
+2025-05-31 18:16:06,453 [tomcat-shutdown] INFO  o.s.b.w.embedded.tomcat.GracefulShutdown           - Graceful shutdown complete
+2025-05-31 18:16:06,457 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean     - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-05-31 18:16:06,458 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Shutdown initiated...
+2025-05-31 18:16:06,459 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Shutdown completed.
+2025-05-31 18:16:06,461 [SpringApplicationShutdownHook] INFO  com.netflix.discovery.DiscoveryClient              - Shutting down DiscoveryClient ...
+2025-05-31 18:16:06,461 [SpringApplicationShutdownHook] INFO  com.netflix.discovery.DiscoveryClient              - Completed shut down of DiscoveryClient
+2025-05-31 18:21:48,091 [background-preinit] INFO  o.h.validator.internal.util.Version                - HV000001: Hibernate Validator 8.0.2.Final
+2025-05-31 18:21:48,128 [main] INFO  e.m.userservice.UserServiceApplication             - Starting UserServiceApplication using Java 21 with PID 23112 (C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service\target\classes started by ja2c in C:\Users\ja2c\Desktop\Cursos\micro-servicio-archt\user-service)
+2025-05-31 18:21:48,129 [main] DEBUG e.m.userservice.UserServiceApplication             - Running with Spring Boot v3.4.5, Spring v6.2.6
+2025-05-31 18:21:48,129 [main] INFO  e.m.userservice.UserServiceApplication             - The following 1 profile is active: "dev"
+2025-05-31 18:21:48,156 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:21:48,157 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:21:48,157 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@515f4131 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'default']): I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information
+2025-05-31 18:21:48,157 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:21:48,157 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/dev": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:21:48,157 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@2a415aa9 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'dev']): I/O error on GET request for "http://localhost:8890/user-service/dev": Connection refused: no further information
+2025-05-31 18:21:48,157 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Fetching config from server at : http://localhost:8890
+2025-05-31 18:21:48,157 [main] INFO  o.s.c.c.c.ConfigServerConfigDataLoader             - Exception on Url - http://localhost:8890:org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information. Will be trying the next url if available
+2025-05-31 18:21:48,157 [main] WARN  o.s.c.c.c.ConfigServerConfigDataLoader             - Could not locate PropertySource ([ConfigServerConfigDataResource@53cdecf6 uris = array<String>['http://localhost:8890'], optional = true, profiles = 'default']): I/O error on GET request for "http://localhost:8890/user-service/default": Connection refused: no further information
+2025-05-31 18:21:48,822 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate          - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-05-31 18:21:48,958 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate          - Finished Spring Data repository scanning in 126 ms. Found 4 JPA repository interfaces.
+2025-05-31 18:21:49,184 [main] INFO  o.s.cloud.context.scope.GenericScope               - BeanFactory id=4c00d714-1d02-3e7c-ae95-5d33c4391901
+2025-05-31 18:21:49,765 [main] INFO  o.s.b.w.embedded.tomcat.TomcatWebServer            - Tomcat initialized with port 8080 (http)
+2025-05-31 18:21:49,776 [main] INFO  o.apache.coyote.http11.Http11NioProtocol           - Initializing ProtocolHandler ["http-nio-8080"]
+2025-05-31 18:21:49,778 [main] INFO  o.apache.catalina.core.StandardService             - Starting service [Tomcat]
+2025-05-31 18:21:49,778 [main] INFO  org.apache.catalina.core.StandardEngine            - Starting Servlet engine: [Apache Tomcat/10.1.40]
+2025-05-31 18:21:49,835 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/]                 - Initializing Spring embedded WebApplicationContext
+2025-05-31 18:21:49,836 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext     - Root WebApplicationContext: initialization completed in 1678 ms
+2025-05-31 18:21:49,997 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Starting...
+2025-05-31 18:21:50,178 [main] INFO  com.zaxxer.hikari.pool.HikariPool                  - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:userdb user=SA
+2025-05-31 18:21:50,181 [main] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Start completed.
+2025-05-31 18:21:50,402 [main] INFO  o.hibernate.jpa.internal.util.LogHelper            - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-05-31 18:21:50,485 [main] INFO  org.hibernate.Version                              - HHH000412: Hibernate ORM core version 6.6.13.Final
+2025-05-31 18:21:50,536 [main] INFO  o.h.c.internal.RegionFactoryInitiator              - HHH000026: Second-level cache disabled
+2025-05-31 18:21:50,723 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo                - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-05-31 18:21:50,768 [main] INFO  org.hibernate.orm.connections.pooling              - HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-05-31 18:21:51,463 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator                 - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-05-31 18:21:51,547 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean     - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-05-31 18:21:52,202 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory               - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-05-31 18:21:53,054 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-05-31 18:21:53,886 [main] INFO  o.s.b.a.h2.H2ConsoleAutoConfiguration              - H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:userdb'
+2025-05-31 18:21:54,046 [main] INFO  o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration - Eureka HTTP Client uses RestTemplate.
+2025-05-31 18:21:54,085 [main] WARN  o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger - Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2025-05-31 18:21:54,118 [main] INFO  o.s.c.netflix.eureka.InstanceInfoFactory           - Setting initial instance status as: STARTING
+2025-05-31 18:21:54,139 [main] INFO  com.netflix.discovery.DiscoveryClient              - Initializing Eureka in region us-east-1
+2025-05-31 18:21:54,139 [main] INFO  com.netflix.discovery.DiscoveryClient              - Client configured to neither register nor query for data.
+2025-05-31 18:21:54,141 [main] INFO  com.netflix.discovery.DiscoveryClient              - Discovery Client initialized at timestamp 1748730114140 with initial instances count: 0
+2025-05-31 18:21:54,147 [main] INFO  o.s.c.n.e.s.EurekaServiceRegistry                  - Registering application USER-SERVICE with eureka with status UP
+2025-05-31 18:21:54,148 [main] INFO  o.apache.coyote.http11.Http11NioProtocol           - Starting ProtocolHandler ["http-nio-8080"]
+2025-05-31 18:21:54,161 [main] INFO  o.s.b.w.embedded.tomcat.TomcatWebServer            - Tomcat started on port 8080 (http) with context path '/'
+2025-05-31 18:21:54,162 [main] INFO  o.s.c.n.e.s.EurekaAutoServiceRegistration          - Updating port to 8080
+2025-05-31 18:21:54,172 [main] INFO  e.m.userservice.UserServiceApplication             - Started UserServiceApplication in 6.854 seconds (process running for 7.288)
+2025-05-31 18:22:04,181 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/]                 - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-31 18:22:04,181 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet                  - Initializing Servlet 'dispatcherServlet'
+2025-05-31 18:22:04,182 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet                  - Completed initialization in 0 ms
+2025-05-31 18:22:04,246 [http-nio-8080-exec-1] INFO  e.m.u.i.adapter.input.web.AuthController           - Recibida solicitud de login para el usuario: admin@example.com
+2025-05-31 18:22:04,247 [http-nio-8080-exec-1] DEBUG e.m.u.i.adapter.input.web.AuthController           - Dirección IP del cliente: 0:0:0:0:0:0:0:1
+2025-05-31 18:22:04,249 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.TransactionAspect                   - Iniciando transacción para LoginUserUseCase.execute con argumentos: [LoginCredentialsVO{email='admin@example.com', password='[PROTECTED]', ipAddress='0:0:0:0:0:0:0:1', userAgent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'}]
+2025-05-31 18:22:04,253 [http-nio-8080-exec-1] INFO  e.m.u.i.aspect.LoggingAspect                       - Iniciando LoginUserUseCase.execute
+2025-05-31 18:22:04,253 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.LoggingAspect                       - Iniciando ejecución de LoginUserUseCase.execute con argumentos: [LoginCredentialsVO{email='admin@example.com', password='[PROTECTED]', ipAddress='0:0:0:0:0:0:0:1', userAgent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'}]
+2025-05-31 18:22:04,253 [http-nio-8080-exec-1] INFO  e.m.u.a.usecase.auth.LoginUserUseCase              - init - execute
+2025-05-31 18:22:04,253 [http-nio-8080-exec-1] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute find user by email: admin@example.com
+2025-05-31 18:22:04,255 [http-nio-8080-exec-1] INFO  e.m.u.i.a.o.p.JpaUserRepository                    - init - findByEmail
+2025-05-31 18:22:04,255 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaUserRepository                    - findByEmail searching user with email: admin@example.com
+2025-05-31 18:22:04,323 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaUserRepository                    - findByEmail user found in database with ID: 1
+2025-05-31 18:22:04,323 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para user entity ID: 1
+2025-05-31 18:22:04,334 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para role entity ID: 4
+2025-05-31 18:22:04,335 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para role entity ID: 4
+2025-05-31 18:22:04,335 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para role entity ID: 2
+2025-05-31 18:22:04,335 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para role entity ID: 2
+2025-05-31 18:22:04,335 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para role entity ID: 3
+2025-05-31 18:22:04,335 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para role entity ID: 3
+2025-05-31 18:22:04,335 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para role entity ID: 1
+2025-05-31 18:22:04,335 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para role entity ID: 1
+2025-05-31 18:22:04,335 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para user entity ID: 1
+2025-05-31 18:22:04,336 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaUserRepository                    - findByEmail user mapped successfully with ID: 1
+2025-05-31 18:22:04,336 [http-nio-8080-exec-1] INFO  e.m.u.i.a.o.p.JpaUserRepository                    - end - findByEmail
+2025-05-31 18:22:04,336 [http-nio-8080-exec-1] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute user found with ID: 1
+2025-05-31 18:22:04,336 [http-nio-8080-exec-1] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute validating credentials for user: 1
+2025-05-31 18:22:04,336 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.LoggingAspect                       - Iniciando ejecución de AuthDomainService.validateCredentials con argumentos: [edu.market.userservice.domain.model.User@22bd917c, password, org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder@6080230a]
+2025-05-31 18:22:04,337 [http-nio-8080-exec-1] INFO  e.m.u.domain.service.AuthDomainService             - init - validateCredentials
+2025-05-31 18:22:04,337 [http-nio-8080-exec-1] DEBUG e.m.u.domain.service.AuthDomainService             - validateCredentials validating password for user: 1
+2025-05-31 18:22:04,393 [http-nio-8080-exec-1] DEBUG e.m.u.domain.service.AuthDomainService             - validateCredentials password is valid for user: 1
+2025-05-31 18:22:04,393 [http-nio-8080-exec-1] INFO  e.m.u.domain.service.AuthDomainService             - end - validateCredentials
+2025-05-31 18:22:04,394 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.LoggingAspect                       - Finalizada ejecución de AuthDomainService.validateCredentials con resultado: true
+2025-05-31 18:22:04,394 [http-nio-8080-exec-1] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute registering successful login for user: 1
+2025-05-31 18:22:04,394 [http-nio-8080-exec-1] INFO  e.m.u.i.a.o.p.JpaUserRepository                    - init - save
+2025-05-31 18:22:04,394 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaUserRepository                    - save processing user with email: admin@example.com
+2025-05-31 18:22:04,394 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toEntity para user ID: 1
+2025-05-31 18:22:04,405 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - init - toDomain para user entity ID: 1
+2025-05-31 18:22:04,406 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.UserMapper                    - end - toDomain para user entity ID: 1
+2025-05-31 18:22:04,406 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaUserRepository                    - save user saved successfully with ID: 1
+2025-05-31 18:22:04,406 [http-nio-8080-exec-1] INFO  e.m.u.i.a.o.p.JpaUserRepository                    - end - save
+2025-05-31 18:22:04,406 [http-nio-8080-exec-1] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute creating login metadata for user: 1
+2025-05-31 18:22:04,406 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.LoggingAspect                       - Iniciando ejecución de AuthDomainService.createLoginMetadata con argumentos: [edu.market.userservice.domain.model.User@22bd917c, 0:0:0:0:0:0:0:1, Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36]
+2025-05-31 18:22:04,407 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.LoggingAspect                       - Finalizada ejecución de AuthDomainService.createLoginMetadata con resultado: edu.market.userservice.domain.model.MetadataLogin@5f666ac1
+2025-05-31 18:22:04,407 [http-nio-8080-exec-1] INFO  e.m.u.i.a.o.p.JpaMetadataLoginRepository           - init - save
+2025-05-31 18:22:04,407 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaMetadataLoginRepository           - save finding user with ID: 1
+2025-05-31 18:22:04,409 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaMetadataLoginRepository           - save user found with ID: 1, saving metadata
+2025-05-31 18:22:04,410 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.MetadataLoginMapper           - init - toEntity para metadataLogin ID: null
+2025-05-31 18:22:04,410 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.MetadataLoginMapper           - end - toEntity para metadataLogin ID: null
+2025-05-31 18:22:04,426 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.MetadataLoginMapper           - init - toDomain para metadataLogin entity ID: 1
+2025-05-31 18:22:04,426 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.MetadataLoginMapper           - end - toDomain para metadataLogin entity ID: 1
+2025-05-31 18:22:04,426 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaMetadataLoginRepository           - save metadata saved successfully with ID: 1
+2025-05-31 18:22:04,426 [http-nio-8080-exec-1] INFO  e.m.u.i.a.o.p.JpaMetadataLoginRepository           - end - save
+2025-05-31 18:22:04,426 [http-nio-8080-exec-1] DEBUG e.m.u.a.usecase.auth.LoginUserUseCase              - execute generating authentication token for user: 1
+2025-05-31 18:22:04,426 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.LoggingAspect                       - Iniciando ejecución de TokenDomainService.generateToken con argumentos: [edu.market.userservice.domain.model.User@22bd917c]
+2025-05-31 18:22:04,426 [http-nio-8080-exec-1] INFO  e.m.u.domain.service.TokenDomainService            - init - generateToken
+2025-05-31 18:22:04,427 [http-nio-8080-exec-1] DEBUG e.m.u.domain.service.TokenDomainService            - generateToken creating access token for user: 1
+2025-05-31 18:22:04,427 [http-nio-8080-exec-1] DEBUG e.m.u.domain.service.TokenDomainService            - generateToken creating refresh token for user: 1
+2025-05-31 18:22:04,427 [http-nio-8080-exec-1] DEBUG e.m.u.domain.service.TokenDomainService            - generateToken setting expiration times: access=2025-05-31T19:22:04.427275700, refresh=2025-06-07T18:22:04.427275700
+2025-05-31 18:22:04,427 [http-nio-8080-exec-1] DEBUG e.m.u.domain.service.TokenDomainService            - generateToken building UserAuthToken object
+2025-05-31 18:22:04,427 [http-nio-8080-exec-1] INFO  e.m.u.domain.service.TokenDomainService            - end - generateToken
+2025-05-31 18:22:04,427 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.LoggingAspect                       - Finalizada ejecución de TokenDomainService.generateToken con resultado: edu.market.userservice.domain.model.UserAuthToken@197db47
+2025-05-31 18:22:04,427 [http-nio-8080-exec-1] INFO  e.m.u.i.a.o.p.JpaUserAuthTokenRepository           - init - save
+2025-05-31 18:22:04,428 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaUserAuthTokenRepository           - save finding user with ID: 1
+2025-05-31 18:22:04,428 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaUserAuthTokenRepository           - save user found with ID: 1, saving token
+2025-05-31 18:22:04,428 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - init - toEntity para token ID: null con usuario ID: 1
+2025-05-31 18:22:04,428 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - init - toEntity para token ID: null
+2025-05-31 18:22:04,428 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - end - toEntity para token ID: null
+2025-05-31 18:22:04,428 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - end - toEntity para token ID: null con usuario ID: 1
+2025-05-31 18:22:04,430 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - init - toDomainModel para token entity ID: 1
+2025-05-31 18:22:04,430 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.mapper.TokenMapper                   - end - toDomainModel para token entity ID: 1
+2025-05-31 18:22:04,430 [http-nio-8080-exec-1] DEBUG e.m.u.i.a.o.p.JpaUserAuthTokenRepository           - save token saved successfully with ID: 1
+2025-05-31 18:22:04,430 [http-nio-8080-exec-1] INFO  e.m.u.i.a.o.p.JpaUserAuthTokenRepository           - end - save
+2025-05-31 18:22:04,430 [http-nio-8080-exec-1] INFO  e.m.u.a.usecase.auth.LoginUserUseCase              - end - execute
+2025-05-31 18:22:04,430 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.LoggingAspect                       - Finalizada ejecución de LoginUserUseCase.execute con resultado: edu.market.userservice.domain.model.UserAuthToken@715b8059
+2025-05-31 18:22:04,430 [http-nio-8080-exec-1] INFO  e.m.u.i.aspect.LoggingAspect                       - Completado LoginUserUseCase.execute en 177 ms
+2025-05-31 18:22:04,431 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.TransactionAspect                   - Transacción exitosa para LoginUserUseCase.execute
+2025-05-31 18:22:04,449 [http-nio-8080-exec-1] DEBUG e.m.u.i.aspect.TransactionAspect                   - Transacción completada para LoginUserUseCase.execute
+2025-05-31 18:22:04,450 [http-nio-8080-exec-1] INFO  e.m.u.i.adapter.input.web.AuthController           - Login exitoso para el usuario: admin@example.com
+2025-05-31 18:22:56,484 [SpringApplicationShutdownHook] INFO  o.s.c.n.e.s.EurekaServiceRegistry                  - Unregistering application USER-SERVICE with eureka with status DOWN
+2025-05-31 18:22:56,486 [SpringApplicationShutdownHook] INFO  o.s.b.w.embedded.tomcat.GracefulShutdown           - Commencing graceful shutdown. Waiting for active requests to complete
+2025-05-31 18:22:56,490 [tomcat-shutdown] INFO  o.s.b.w.embedded.tomcat.GracefulShutdown           - Graceful shutdown complete
+2025-05-31 18:22:56,495 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean     - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-05-31 18:22:56,497 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Shutdown initiated...
+2025-05-31 18:22:56,498 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource                 - HikariPool-1 - Shutdown completed.
+2025-05-31 18:22:56,498 [SpringApplicationShutdownHook] INFO  com.netflix.discovery.DiscoveryClient              - Shutting down DiscoveryClient ...
+2025-05-31 18:22:56,498 [SpringApplicationShutdownHook] INFO  com.netflix.discovery.DiscoveryClient              - Completed shut down of DiscoveryClient

@@ -1,0 +1,143 @@
+spring:
+
+  config:
+    import: optional:configserver:http://localhost:8890
+
+  application:
+    name: notification-service
+    version: 1.0.0
+  
+  profiles:
+    active: dev
+
+  cloud:
+    config:
+      enabled: true
+      uri: http://config-server:8890
+
+  #security:
+  #  oauth2:
+  #    resourceserver:
+  #      jwt:
+  #        issuer-uri: http://auth-server:9000 # Cambia por la URL real de tu auth-server
+  
+  datasource:
+    url: jdbc:h2:mem:notificationdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: always # Ejecutar schema.sql en cada inicio
+
+  # Configuración de RabbitMQ
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    # Configuración para manejo de errores y reconexión
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          max-interval: 10000
+          multiplier: 2.0
+    # Configuración para confirmación de publicación
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+
+
+info:
+  app:
+    name: ${spring.application.name}
+    description: Servicio de Notificaciones
+    version: 1.0.0
+
+
+server:
+  servlet.context-path: /${spring.application.name}
+  port: 8080 # Puerto aleatorio para evitar conflictos en desarrollo
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+    register-with-eureka: false
+    fetch-registry: false
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+
+
+springdoc:  
+  swagger-ui:
+    # use-root-path: true
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true
+    prefer-ip-address: true
+
+
+# Configuración de logging
+logging:
+  level:
+    root: INFO   # Nivel general para toda la aplicación
+    edu.market.userservice: DEBUG   # Nivel DEBUG para tus paquetes específicos
+    org.springframework.security: INFO   # Configuración específica para Spring Security
+    org.springframework.web: INFO   # Configuración para componentes web de Spring
+    org.hibernate: INFO   # Configuración general para Hibernate
+    org.hibernate.SQL: ERROR   # Muestra todas las consultas SQL ejecutadas
+    org.hibernate.type.descriptor.sql.BasicBinder: ERROR   # Muestra los valores de los parámetros en las consultas
+
+# Propiedades personalizadas (pueden ser sobreescritas por config-server)
+# Esta es un ejemplo de como se puede estructurar las propiedades personalizadas
+# Configuración personalizada de la aplicación
+notification-service:  
+  app:
+    config:
+      infrastructure:
+        transactional-outbox:
+          # Nombre del exchange para eventos de notificación
+          exchange: ${spring.application.name}.events
+          # Intervalo de procesamiento del outbox en milisegundos (1 minuto)
+          processing-interval: 120000
+          # Tamaño máximo de lote para procesamiento de eventos
+          batch-size: 100
+          queue-prefix: notification
+          max-retries: 3
+        metrics:
+          prefix: ${spring.application.name}.
+        client:
+          example1:
+            config: 
+            parameters:  
+          example2:
+            config: 
+              parameters: 
+        
+           
+  

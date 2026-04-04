@@ -1,0 +1,59 @@
+# Definición de StorageClass para la arquitectura de microservicios
+# Basado en la documentación oficial de Kubernetes:
+# https://v1-32.docs.kubernetes.io/docs/concepts/storage/storage-classes/
+# https://v1-32.docs.kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/
+
+# StorageClass proporciona una forma para que los administradores describan las "clases" de almacenamiento que ofrecen.
+# Diferentes clases pueden mapear a niveles de calidad de servicio, políticas de respaldo, o políticas arbitrarias
+# determinadas por los administradores del clúster.
+
+#apiVersion: storage.k8s.io/v1
+#kind: StorageClass
+#metadata:
+#  name: standard
+#  annotations:
+#    storageclass.kubernetes.io/is-default-class: "true"
+#  labels:
+#    part-of: microservices-platform
+#provisioner: k8s.io/minikube-hostpath # Para entorno de desarrollo local (Docker Desktop)
+#reclaimPolicy: Delete # Política de reclamación cuando se elimina el PVC
+#volumeBindingMode: Immediate # El volumen se vincula inmediatamente cuando se crea el PVC
+
+---
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast
+  labels:
+    part-of: microservices-platform
+provisioner: kubernetes.io/hostpath
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+
+---
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: slow
+  labels:
+    part-of: microservices-platform
+provisioner: kubernetes.io/hostpath
+reclaimPolicy: Retain # Conserva el volumen cuando se elimina el PVC
+volumeBindingMode: Immediate
+
+---
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs
+  labels:
+    part-of: microservices-platform
+provisioner: nfs-subdir-external-provisioner
+parameters:
+  archiveOnDelete: "false"
+volumeBindingMode: Immediate
+reclaimPolicy: Retain
+allowVolumeExpansion: true

@@ -1,0 +1,80 @@
+# CASOS DE USO PARA EL SERVICIO DE CARRITO (CART-SERVICE)
+
+## 1. GESTIÓN DEL CARRITO
+- [ ] CrearCarritoUseCase: Inicializar carrito vacío (usuario o sesión invitado)
+- [ ] AgregarItemUseCase: Agregar producto con cantidad/variantes y precio vigente
+- [ ] ActualizarCantidadUseCase: Cambiar cantidad de un ítem
+- [ ] EliminarItemUseCase: Remover ítem específico
+- [ ] VaciarCarritoUseCase: Limpiar todos los ítems
+- [ ] ObtenerCarritoUseCase: Consultar carrito actual con totales
+
+## 2. PRECIOS, DESCUENTOS Y ENVÍO
+- [ ] RevalidarPreciosUseCase: Sincronizar precios/promos ante cambios
+- [ ] AplicarCuponUseCase: Aplicar/remover cupones o promociones
+- [ ] CalcularTotalesUseCase: Subtotal, impuestos, envío estimado, descuentos
+- [ ] SeleccionarMetodoEnvioUseCase: Guardar opción de envío preferida
+
+## 3. SESIONES Y MIGRACIÓN
+- [ ] GuardarCarritoUseCase: Persistir carrito de usuario autenticado
+- [ ] RecuperarCarritoUseCase: Restaurar carrito guardado
+- [ ] MigrarCarritoInvitadoAUsuarioUseCase: Fusionar carrito de invitado al iniciar sesión
+
+## 4. INVENTARIO Y DISPONIBILIDAD
+- [ ] MarcarNoDisponibleUseCase: Marcar ítems sin stock o con cambios de precio
+- [ ] ReservarStockTemporalUseCase: Reservar stock durante ventana corta (opcional, coordinado con inventory-service)
+
+## 5. CHECKOUT Y INTEGRACIONES
+- [ ] PrepararCheckoutUseCase: Validar carrito antes de checkout (stock, precios, límites)
+- [ ] PublicarEventoCheckoutListoUseCase: Emitir evento al order-service
+
+# PATRONES A IMPLEMENTAR
+
+1. EVENT-DRIVEN ARCHITECTURE
+   - Publicar eventos de carrito (creación, item agregado, checkout listo)
+   - Suscribirse a eventos de precios e inventario
+
+2. TRANSACTIONAL OUTBOX
+   - Registrar eventos de carrito en outbox para publicarlos de forma confiable
+
+3. BULKHEAD & CIRCUIT BREAKER
+   - Aislar llamadas a pricing/inventory; circuit breaker ante fallos externos
+
+4. DEAD LETTER QUEUE
+   - Redirigir eventos de carrito no entregados y reintentar con backoff
+
+## PATRONES DE OBSERVABILIDAD
+
+1. HEALTH CHECK API
+   - Exponer estado del servicio; validar conexiones a base de datos y cola de eventos
+
+2. LOG AGGREGATION
+   - Logs en JSON; integrar con ELK/observabilidad
+
+3. DISTRIBUTED TRACING
+   - Propagar traceId/spanId en todas las operaciones de carrito
+
+4. EXCEPTION TRACKING
+   - Reportar excepciones a un servicio central; alertas por severidad
+
+5. APPLICATION METRICS
+   - Métricas de tamaño de carrito, tasa de agregado/eliminado, éxito en checkout
+
+6. AUDIT LOGGING
+   - Registrar quién modificó el carrito y cuándo; cambios de cantidad y aplicación de cupones
+
+## ENTIDADES PRINCIPALES
+
+1. Carrito
+   - ID, Usuario/Sesión, Fecha creación/actualización, Estado
+
+2. CarritoItem
+   - ID, ProductoID, Variantes, Cantidad, Precio unitario, Descuentos aplicados
+
+3. Cupon/PromocionAplicada
+   - Código, Descuento, Elegibilidad, Expiración
+
+4. TotalesCarrito
+   - Subtotal, Impuestos, Envío estimado, Descuentos, Total
+
+5. ReservaStock (opcional)
+   - Ítem, cantidad, expiración de reserva

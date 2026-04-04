@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kibana-ui-route
+  namespace: monitoring
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`kibana.desarrollo`)
+      kind: Rule
+      services:
+        - name: kibana-kibana
+          port: 5601

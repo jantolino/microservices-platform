@@ -1,0 +1,77 @@
+%% FLUJO DE REINTENTOS Y RECUPERACIÓN DE ERRORES
+%% ==========================================
+%% Este diagrama muestra cómo se manejan los fallos y reintentos en el servicio
+%% de notificaciones, implementando patrones de resiliencia.
+
+%% EXPLICACIÓN DEL FLUJO:
+%% 1. Detección de Fallos: Identificación de errores en la entrega
+%% 2. Clasificación de Errores: Categorización por tipo y causa
+%% 3. Estrategia de Reintentos: Backoff exponencial y límites
+%% 4. Cola de Mensajes Fallidos: Almacenamiento para análisis posterior
+%% 5. Recuperación Manual: Intervención administrativa cuando sea necesario
+
+flowchart TD
+    %% Detección de fallos
+    DeliveryResult[Delivery Result] --> |Error| ErrorClassifier
+    
+    %% Clasificación de errores
+    ErrorClassifier[Error Classifier] --> |Temporal| RetryQueue
+    ErrorClassifier --> |Permanente| DeadLetterQueue
+    ErrorClassifier --> |Configuración| ConfigError
+    
+    %% Manejo de reintentos
+    RetryQueue[Retry Queue] --> RetryScheduler
+    RetryScheduler[Retry Scheduler] --> |Backoff Exponencial| RetryProcessor
+    RetryProcessor[Retry Processor] --> |Max Reintentos| DeadLetterQueue
+    RetryProcessor --> |Reintento| ChannelSelector
+    
+    %% Circuit Breaker
+    ChannelSelector[Channel Selector] --> EmailCircuitBreaker
+    ChannelSelector --> SMSCircuitBreaker
+    ChannelSelector --> PushCircuitBreaker
+    
+    EmailCircuitBreaker[Email Circuit Breaker] --> |Abierto| FallbackChannel
+    SMSCircuitBreaker[SMS Circuit Breaker] --> |Abierto| FallbackChannel
+    PushCircuitBreaker[Push Circuit Breaker] --> |Abierto| FallbackChannel
+    
+    EmailCircuitBreaker --> |Cerrado| EmailChannel
+    SMSCircuitBreaker --> |Cerrado| SMSChannel
+    PushCircuitBreaker --> |Cerrado| PushChannel
+    
+    FallbackChannel[Fallback Channel] --> InAppChannel
+    
+    %% Manejo de errores permanentes
+    DeadLetterQueue[Dead Letter Queue] --> ErrorNotificationGenerator
+    ErrorNotificationGenerator[Error Notification Generator] --> AdminDashboard
+    ErrorNotificationGenerator --> ErrorRepository[(Error Repository)]
+    
+    %% Corrección de configuración
+    ConfigError[Config Error] --> ConfigurationManager
+    ConfigurationManager[Configuration Manager] --> AdminDashboard
+    
+    %% Dashboard de administración
+    AdminDashboard[Admin Dashboard] --> ManualRetryAction
+    AdminDashboard --> ErrorAnalytics
+    ManualRetryAction[Manual Retry Action] --> RetryProcessor
+    
+    %% Métricas de errores
+    ErrorClassifier --> ErrorMetrics
+    RetryProcessor --> RetryMetrics
+    ErrorMetrics[Error Metrics] --> PrometheusRegistry
+    RetryMetrics[Retry Metrics] --> PrometheusRegistry
+    PrometheusRegistry[(Prometheus Registry)]
+    
+    %% Estilo
+    classDef processor fill:#bbf,stroke:#333,stroke-width:2px
+    classDef queue fill:#bfb,stroke:#333,stroke-width:1px
+    classDef breaker fill:#fbb,stroke:#333,stroke-width:1px
+    classDef channel fill:#ffd,stroke:#333,stroke-width:1px
+    classDef admin fill:#f9f,stroke:#333,stroke-width:2px
+    classDef repository fill:#ddd,stroke:#333,stroke-width:1px
+    
+    class ErrorClassifier,RetryProcessor,RetryScheduler,ErrorNotificationGenerator processor
+    class RetryQueue,DeadLetterQueue queue
+    class EmailCircuitBreaker,SMSCircuitBreaker,PushCircuitBreaker breaker
+    class EmailChannel,SMSChannel,PushChannel,InAppChannel,FallbackChannel channel
+    class AdminDashboard,ManualRetryAction,ConfigurationManager admin
+    class ErrorRepository,PrometheusRegistry repository

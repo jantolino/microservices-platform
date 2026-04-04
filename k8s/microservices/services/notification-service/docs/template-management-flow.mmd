@@ -1,0 +1,56 @@
+%% FLUJO DE GESTIÓN DE PLANTILLAS
+%% ============================
+%% Este diagrama muestra cómo se gestionan las plantillas de notificaciones
+%% desde su creación hasta su uso en la generación de notificaciones.
+
+%% EXPLICACIÓN DEL FLUJO:
+%% 1. Interfaz de Administración: Los administradores gestionan plantillas
+%% 2. Casos de Uso: Implementan operaciones CRUD para plantillas
+%% 3. Validación: Asegura que las plantillas sean válidas y seguras
+%% 4. Almacenamiento: Persistencia y caché para acceso rápido
+%% 5. Renderizado: Previsualización de plantillas con datos de ejemplo
+%% 6. Auditoría: Registro de cambios en plantillas para cumplimiento
+
+flowchart TD
+    AdminAPI[Admin API] --> CrearPlantillaUseCase
+    AdminAPI --> ActualizarPlantillaUseCase
+    AdminAPI --> EliminarPlantillaUseCase
+    AdminAPI --> ObtenerPlantillaUseCase
+    
+    CrearPlantillaUseCase[Crear Plantilla Use Case] --> PlantillaValidator
+    ActualizarPlantillaUseCase[Actualizar Plantilla Use Case] --> PlantillaValidator
+    ObtenerPlantillaUseCase[Obtener Plantilla Use Case] --> PlantillaService
+    EliminarPlantillaUseCase[Eliminar Plantilla Use Case] --> PlantillaService
+    
+    PlantillaValidator[Plantilla Validator] --> PlantillaService
+    PlantillaService[Plantilla Service] --> PlantillaRepository
+    
+    PlantillaRepository[(Plantilla Repository)] --> PlantillaCache
+    PlantillaCache[Plantilla Cache] --> NotificationFactory
+    
+    %% Validación de plantillas
+    PlantillaValidator --> PlantillaRenderer
+    PlantillaRenderer[Plantilla Renderer] --> PlantillaPreview
+    PlantillaPreview[Plantilla Preview] --> AdminAPI
+    
+    %% Auditoría
+    PlantillaService --> AuditLogger
+    AuditLogger[Audit Logger] --> AuditRepository[(Audit Repository)]
+    
+    %% Versionado de plantillas
+    PlantillaService --> PlantillaVersioning
+    PlantillaVersioning[Plantilla Versioning] --> PlantillaHistoryRepository[(Plantilla History)]
+    
+    %% Estilo
+    classDef usecase fill:#f9f,stroke:#333,stroke-width:2px
+    classDef domain fill:#bbf,stroke:#333,stroke-width:2px
+    classDef repository fill:#bfb,stroke:#333,stroke-width:1px
+    classDef adapter fill:#fbb,stroke:#333,stroke-width:1px
+    classDef validation fill:#ffb,stroke:#333,stroke-width:1px
+    
+    class CrearPlantillaUseCase,ActualizarPlantillaUseCase,EliminarPlantillaUseCase,ObtenerPlantillaUseCase usecase
+    class PlantillaService,PlantillaVersioning domain
+    class PlantillaRepository,AuditRepository,PlantillaHistoryRepository repository
+    class AdminAPI,PlantillaCache adapter
+    class PlantillaValidator,PlantillaRenderer,PlantillaPreview validation
+    PlantillaService --> AuditLogger

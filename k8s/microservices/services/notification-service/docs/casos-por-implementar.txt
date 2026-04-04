@@ -1,0 +1,113 @@
+# CASOS DE USO PARA EL SERVICIO DE NOTIFICACIONES
+
+## 1. GESTIÓN DE NOTIFICACIONES
+- [ ] EnviarNotificacionUseCase: Envío de notificaciones a través de diferentes canales (email, SMS, push)
+- [ ] ProgramarNotificacionUseCase: Programación de notificaciones para envío futuro
+- [ ] CancelarNotificacionUseCase: Cancelación de notificaciones programadas
+- [ ] ReintentarNotificacionUseCase: Reintento de notificaciones fallidas
+
+## 2. PLANTILLAS DE NOTIFICACIONES
+- [ ] CrearPlantillaUseCase: Creación de plantillas para diferentes tipos de notificaciones
+- [ ] ActualizarPlantillaUseCase: Actualización de plantillas existentes
+- [ ] EliminarPlantillaUseCase: Eliminación de plantillas
+- [ ] ObtenerPlantillaUseCase: Obtención de plantillas para su uso
+
+## 3. PREFERENCIAS DE USUARIO
+- [ ] ActualizarPreferenciasNotificacionUseCase: Actualización de preferencias de notificación por usuario
+- [ ] ConsultarPreferenciasNotificacionUseCase: Consulta de preferencias de notificación
+- [ ] DesactivarNotificacionesUseCase: Desactivación de notificaciones para un usuario
+
+## 4. HISTORIAL Y SEGUIMIENTO
+- [ ] ConsultarHistorialNotificacionesUseCase: Consulta del historial de notificaciones enviadas
+- [ ] VerificarEstadoNotificacionUseCase: Verificación del estado de una notificación
+- [ ] GenerarReporteNotificacionesUseCase: Generación de reportes de notificaciones
+
+## 5. INTEGRACIÓN CON EVENTOS
+- [ ] ProcesarEventoDominioUseCase: Procesamiento de eventos de dominio para generar notificaciones
+- [ ] SuscribirseEventosUseCase: Suscripción a eventos de otros microservicios
+- [ ] DesuscribirseEventosUseCase: Desuscripción a eventos de otros microservicios
+
+# PATRONES A IMPLEMENTAR
+
+1. EVENT-DRIVEN ARCHITECTURE
+   - Utilizar RabbitMQ para recibir eventos de otros servicios
+   - Implementar listeners para diferentes tipos de eventos
+
+2. TRANSACTIONAL OUTBOX
+   - Guardar notificaciones en una tabla de outbox antes de enviarlas
+   - Implementar un proceso que lea la tabla y envíe las notificaciones
+
+3. BULKHEAD PATTERN
+   - Aislar los diferentes canales de notificación
+   - Evitar que un fallo en un canal afecte a los demás
+
+4. CIRCUIT BREAKER
+   - Implementar circuit breaker para servicios externos
+   - Manejar fallos en proveedores de email o SMS
+
+5. DEAD LETTER QUEUE
+   - Configurar cola para notificaciones fallidas
+   - Implementar proceso de reintento con backoff exponencial
+
+## PATRONES DE OBSERVABILIDAD
+
+1. HEALTH CHECK API
+   - Exponer endpoint que devuelve el estado de salud del servicio
+   - Verificar conexiones a proveedores de notificaciones y base de datos
+   - Integrar con Spring Boot Actuator
+
+2. LOG AGGREGATION
+   - Consolidar logs en un servidor centralizado (ELK Stack)
+   - Estructurar logs en formato JSON para facilitar búsquedas
+   - Implementar niveles de logging adecuados
+
+3. DISTRIBUTED TRACING
+   - Asignar ID único a cada solicitud de notificación
+   - Rastrear flujo de notificaciones a través de servicios
+   - Integrar con Jaeger o Zipkin
+
+4. EXCEPTION TRACKING
+   - Reportar excepciones a un servicio centralizado
+   - Desduplicar errores y generar alertas
+   - Categorizar excepciones por severidad
+
+5. APPLICATION METRICS
+   - Mantener métricas sobre rendimiento del servicio
+   - Medir tasas de éxito/fallo de notificaciones por canal
+   - Exponer métricas a Prometheus
+
+6. AUDIT LOGGING
+   - Registrar quién solicitó el envío de notificaciones y cuándo
+   - Almacenar información de auditoría separada de logs operativos
+   - Implementar mecanismos de no repudio
+
+## ENTIDADES PRINCIPALES
+
+1. Notificación
+   - ID
+   - Tipo (EMAIL, SMS, PUSH, IN_APP)
+   - Destinatario
+   - Contenido
+   - Estado
+   - Fecha de creación
+   - Fecha de envío
+   - Intentos
+
+2. Plantilla
+   - ID
+   - Nombre
+   - Tipo
+   - Contenido (con placeholders)
+   - Activa
+
+3. PreferenciasUsuario
+   - ID Usuario
+   - Canales activos
+   - Tipos de notificaciones permitidos
+   - Horario preferido
+
+4. HistorialNotificaciones
+   - ID Notificación
+   - Resultado
+   - Detalles del error (si aplica)
+   - Timestamp

@@ -1,0 +1,59 @@
+%% FLUJO DE PROCESAMIENTO DE EVENTOS Y SUSCRIPCIONES
+%% =============================================
+%% Este diagrama muestra cómo el servicio maneja eventos de diferentes fuentes
+%% y cómo los usuarios pueden suscribirse o desuscribirse de notificaciones.
+
+%% EXPLICACIÓN DEL FLUJO:
+%% 1. Fuentes de Eventos: Servicios externos generan eventos
+%% 2. Bus de Eventos: Centraliza la distribución de eventos (RabbitMQ)
+%% 3. Procesamiento de Eventos: Clasifica y procesa según tipo
+%% 4. Generación de Notificaciones: Convierte eventos en notificaciones
+%% 5. Preferencias de Usuario: Filtra según preferencias de suscripción
+
+flowchart TD
+    %% Fuentes de eventos
+    UserService[User Service] --> EventBus
+    OrderService[Order Service] --> EventBus
+    PaymentService[Payment Service] --> EventBus
+    
+    EventBus[Event Bus / RabbitMQ] --> EventListener
+    EventListener[Event Listener] --> EventRouter
+    
+    %% Enrutamiento de eventos
+    EventRouter[Event Router] --> UserEventProcessor
+    EventRouter --> OrderEventProcessor
+    EventRouter --> PaymentEventProcessor
+    
+    %% Procesadores específicos
+    UserEventProcessor[User Event Processor] --> NotificationFactory
+    OrderEventProcessor[Order Event Processor] --> NotificationFactory
+    PaymentEventProcessor[Payment Event Processor] --> NotificationFactory
+    
+    %% Filtrado por preferencias
+    NotificationFactory[Notification Factory] --> PreferenceFilter
+    PreferenceFilter[Preference Filter] --> NotificationService
+    
+    %% Suscripciones
+    UserAPI[User API] --> ActualizarSuscripcionesUseCase
+    ActualizarSuscripcionesUseCase[Actualizar Suscripciones Use Case] --> PreferenciasService
+    PreferenciasService[Preferencias Service] --> PreferenciasRepository[(Preferencias Repository)]
+    PreferenciasRepository --> PreferenceFilter
+    
+    %% Eventos de cambio de suscripción
+    PreferenciasService --> SubscriptionChangedEvent
+    SubscriptionChangedEvent[Subscription Changed Event] --> EventBus
+    
+    %% Estilo
+    classDef external fill:#fdd,stroke:#333,stroke-width:1px
+    classDef adapter fill:#fbb,stroke:#333,stroke-width:1px
+    classDef processor fill:#bbf,stroke:#333,stroke-width:2px
+    classDef usecase fill:#f9f,stroke:#333,stroke-width:2px
+    classDef service fill:#bfb,stroke:#333,stroke-width:1px
+    classDef repository fill:#bfb,stroke:#333,stroke-width:1px
+    
+    class UserService,OrderService,PaymentService external
+    class EventBus,EventListener,EventRouter adapter
+    class UserEventProcessor,OrderEventProcessor,PaymentEventProcessor processor
+    class ActualizarSuscripcionesUseCase usecase
+    class PreferenciasService,NotificationService,PreferenceFilter service
+    class PreferenciasRepository repository

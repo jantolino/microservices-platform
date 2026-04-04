@@ -1,0 +1,47 @@
+server:
+  port: 8890
+
+spring:
+  profiles:
+    active: jdbc
+  application:
+    name: config-server
+  
+  datasource:
+    url: jdbc:h2:mem:configdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    initialization-mode: always
+  h2:
+    console:
+      enabled: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+
+management:  
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info
+
+---
+spring:
+  config:
+    activate:
+      on-profile: jdbc
+  cloud:
+    config:
+      server:
+        jdbc:
+          sql: SELECT PROP_KEY, PROP_VALUE from PROPERTIES where APPLICATION=? and PROFILE=? and LABEL=?
