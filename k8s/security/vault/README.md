@@ -143,6 +143,7 @@ Tras la instalación, Vault se encuentra sellado (sealed). Se debe inicializar y
 # Inicializar Vault (solo una vez)
 kubectl exec -it vault-0 -n security -- vault operator init
 
+
 # Desbloquear Vault (requiere 3 claves)
 kubectl exec -it vault-0 -n security -- vault operator unseal
 # Repetir con tres claves diferentes
@@ -151,7 +152,7 @@ kubectl exec -it vault-0 -n security -- vault operator unseal
 ### 6.3 Acceso con root token
 
 ```bash
-kubectl exec -it vault-0 -n security -- vault login <root-token>
+
 ```
 
 ### 6.4 Exposición mediante Ingress (Traefik)
