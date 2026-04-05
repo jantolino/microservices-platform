@@ -11,7 +11,7 @@ kind: Namespace
 metadata:
   name: event-management
   labels:
-    name: event-management
+    name: data-services
     part-of: microservices-platform
     environment: development
 

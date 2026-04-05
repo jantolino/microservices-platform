@@ -13,10 +13,6 @@ image:
 # Credenciales del superusuario
 auth:
   postgresPassword: "postgres123"   # Contraseña de administrador
-  # Usuario y base de datos por defecto (se crea con el chart)
-  username: "artifactory"
-  password: "artifactory456"
-  database: "artifactory"
 
 # Recursos reducidos (modo standalone)
 architecture: standalone

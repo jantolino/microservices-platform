@@ -10,8 +10,8 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: event-management-network-policy
-  namespace: event-management
+  name: data-services-network-policy
+  namespace: data-services
   labels:
     part-of: microservices-platform
 spec:
@@ -90,22 +90,22 @@ spec:
   - Egress
   ingress:
   - from:
-    # Permitir acceso desde el namespace de microservicios
+    # Permitir acceso desde el namespace de microservices
     - namespaceSelector:
         matchLabels:
           name: microservices
-    # Permitir acceso desde el namespace de CI/CD
+    # Permitir acceso desde el namespace de devops-tools
     - namespaceSelector:
         matchLabels:
           name: devops-tools
-    # Permitir acceso desde el namespace de monitoreo
+    # Permitir acceso desde el namespace de monitoring
     - namespaceSelector:
         matchLabels:
           name: monitoring
-    # Permitir acceso desde el namespace de servicios de datos
+    # Permitir acceso desde el namespace de data-services
     - namespaceSelector:
         matchLabels:
-          name: event-management
+          name: data-services
     # Permitir acceso desde el namespace de ingress (Traefik)
     - namespaceSelector:
         matchLabels:
@@ -199,7 +199,7 @@ spec:
     - protocol: TCP
       port: 443 # GitLab HTTPS
     - protocol: TCP
-      port: 8081 # Nexus
+      port: 8082 # Artifactory OSS
   egress:
   - to:
     - namespaceSelector: {}

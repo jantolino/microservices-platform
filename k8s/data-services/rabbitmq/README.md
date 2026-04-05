@@ -20,7 +20,7 @@
 
 ## 1. Introducción y decisión técnica
 
-**RabbitMQ Cluster Operator** es la solución oficial para desplegar y gestionar clústeres de RabbitMQ en Kubernetes. A diferencia de otros métodos (como el chart de Bitnami), el operador está mantenido por el equipo de RabbitMQ, ofrece alta disponibilidad nativa y una integración perfecta con Prometheus.
+**RabbitMQ Cluster Operator** es la solución oficial para desplegar y gestionar clústeres de RabbitMQ en Kubernetes. El operador está mantenido por el equipo de RabbitMQ.
 
 ### ¿Por qué no usar el chart de Bitnami?
 Durante la evaluación se presentaron múltiples problemas con `bitnami/rabbitmq` :

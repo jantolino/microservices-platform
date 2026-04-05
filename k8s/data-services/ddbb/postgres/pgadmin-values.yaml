@@ -7,7 +7,7 @@ image:
   pullPolicy: IfNotPresent
 
 env:
-  email: "admin@example.com"           # Cambia a un dominio real si es necesario
+  email: "admin@desarrollo.edu"
   password: "pgadmin123"
   enhanced_cookie_protection: "False"
 
