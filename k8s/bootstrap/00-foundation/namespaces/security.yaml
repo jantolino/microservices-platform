@@ -1,0 +1,65 @@
+# 1. Creación del Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: security
+  labels:
+    part-of: microservices-platform
+---
+# 2. Presupuesto de Recursos (ResourceQuota)
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: security-quota
+  namespace: security
+spec:
+  hard:
+
+    requests.cpu: "1000m"
+    requests.memory: "2.5Gi"
+    
+    # --- PICOS MÁXIMOS (Burst Protection / Undercommit) ---
+    # security aloja Trivy Operator y herramientas de escaneo que pueden tener picos.
+    limits.cpu: "1000m"
+    limits.memory: "2.8Gi"
+
+    pods: "20"
+---
+# 3. Límites por Defecto por Pod (LimitRange)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: security-limits
+  namespace: security
+spec:
+  limits:
+  - type: Container
+    # --- SAFETY NET (Si un chart NO trae recursos definidos) ---
+    default:
+      cpu: "500m"
+      memory: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+
+    max:
+      cpu: "1"
+      memory: "2.8Gi"
+
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+---
+# 4. Aislamiento de Red (Default Deny All)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: security
+  labels:
+    part-of: microservices-platform
+spec:
+  podSelector: {} # Afecta a todos los pods DENTRO de 'security'
+  policyTypes:
+  - Ingress
+  - Egress

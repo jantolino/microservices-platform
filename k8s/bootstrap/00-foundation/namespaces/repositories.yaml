@@ -1,0 +1,68 @@
+# 1. Creación del Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: repositories
+  labels:
+    part-of: microservices-platform
+---
+# 2. Presupuesto de Recursos (ResourceQuota)
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: repositories-quota
+  namespace: repositories
+spec:
+  hard:
+
+    requests.cpu: "1000m"
+    requests.memory: "2.5Gi"
+    
+    # --- PICOS MÁXIMOS (Burst Protection / Undercommit) ---
+    # NOTA DE ARQUITECTURA: Si sumamos los "limits" de TODOS los namespaces
+    # repositories aloja Artifactory/Nexus - repositorios de artefactos que pueden tener picos.
+    limits.cpu: "1000m"
+    limits.memory: "3Gi"
+
+    # --- CONTROL PLANO (Anti-DDoS Interno) ---
+    # Repositorios de artefactos típicamente tienen pocos pods pero pesados.
+    pods: "15"
+---
+# 3. Límites por Defecto por Pod (LimitRange)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: repositories-limits
+  namespace: repositories
+spec:
+  limits:
+  - type: Container
+    # --- SAFETY NET (Si un chart NO trae recursos definidos) ---
+    default:
+      cpu: "500m"
+      memory: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+
+    max:
+      cpu: "1000m"
+      memory: "3Gi"
+
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+---
+# 4. Aislamiento de Red (Default Deny All)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: repositories
+  labels:
+    part-of: microservices-platform
+spec:
+  podSelector: {} # Afecta a todos los pods DENTRO de 'repositories'
+  policyTypes:
+  - Ingress
+  - Egress

@@ -1,0 +1,71 @@
+# 1. Creación del Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+  labels:
+    part-of: microservices-platform
+---
+# 2. Presupuesto de Recursos (ResourceQuota)
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cert-manager-quota
+  namespace: cert-manager
+spec:
+  hard:
+
+    requests.cpu: "300m"
+    requests.memory: "600Mi"
+    
+    # --- PICOS MÁXIMOS (Burst Protection / Undercommit) ---
+    # NOTA DE ARQUITECTURA: Si sumamos los "limits" de TODOS los namespaces, 
+    # NO deben superar las 12 CPUs / 28 GB RAM físicas de la PC.
+    # cert-manager es un componente ligero, permitimos burst moderado.
+    limits.cpu: "400m"
+    limits.memory: "600Mi"
+    
+    # --- CONTROL PLANO (Anti-DDoS Interno) ---
+    # cert-manager tiene pocos pods (controller, webhook, cainjector).
+    pods: "10"
+---
+# 3. Límites por Defecto por Pod (LimitRange)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cert-manager-limits
+  namespace: cert-manager
+spec:
+  limits:
+  - type: Container
+    # --- SAFETY NET (Si un chart NO trae recursos definidos) ---
+    default:
+      cpu: "200m"
+      memory: "256Mi"
+    defaultRequest:
+      cpu: "50m"
+      memory: "128Mi"
+
+    max:
+      cpu: "400m"
+      memory: "512Mi"
+    # --- PISO MÍNIMO ---
+    min:
+      cpu: "10m"
+      memory: "32Mi"
+---
+# 4. Aislamiento de Red (Default Deny All)
+# Bloquea todo el tráfico de entrada y salida por defecto.
+# Las reglas específicas se definen en NetworkPolicies adicionales.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: cert-manager
+  labels:
+    part-of: microservices-platform
+spec:
+  podSelector: {} # Afecta a todos los pods DENTRO de 'cert-manager'
+  policyTypes:
+  - Ingress
+  - Egress

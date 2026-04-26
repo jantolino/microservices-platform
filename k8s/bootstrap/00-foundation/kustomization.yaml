@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # ==========================================
+  # Namespaces (Gobernanza y Red)
+  # ==========================================
+  - namespaces/argocd.yaml
+  - namespaces/cert-manager.yaml
+  - namespaces/data-services.yaml
+  - namespaces/devops-tools.yaml
+  - namespaces/monitoring.yaml
+  - namespaces/networking.yaml
+  - namespaces/repositories.yaml
+  - namespaces/security.yaml
+  - namespaces/vault.yaml
+
+  # ==========================================
+  # Storage Classes (Infraestructura de Discos)
+  # ==========================================
+  - storage-class/local-default.yaml
+  - storage-class/nfs.yaml

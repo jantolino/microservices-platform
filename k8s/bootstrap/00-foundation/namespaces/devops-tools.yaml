@@ -1,0 +1,72 @@
+# 1. Creación del Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devops-tools
+  labels:
+    part-of: microservices-platform
+---
+# 2. Presupuesto de Recursos (ResourceQuota)
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: devops-tools-quota
+  namespace: devops-tools
+spec:
+  hard:
+    # --- GARANTÍAS (Lo que necesitan para funcionar en estado normal) ---
+    # Tomado exactamente de la Tabla de Capacity Planning (Sumatoria + 20% Headroom)
+    requests.cpu: "1800m"
+    requests.memory: "4Gi"
+    
+    # --- PICOS MÁXIMOS (Burst Protection / Undercommit) ---
+    # Permitimos que devops-tools haga "burst" hasta 3.5 CPUs, pero no más, 
+    # para asegurar que le quede CPU física a monitoring y data-services si pican al mismo tiempo.
+    limits.cpu: "1900m"
+    limits.memory: "5Gi"
+    
+    # --- CONTROL PLANO (Anti-DDoS Interno) ---
+    # Jenkins puede generar agentes efímeros. Limitamos a 20 pods para no 
+    # saturar la base de datos de Kubernetes (etcd) en una PC local.
+    pods: "20"
+---
+# 3. Límites por Defecto por Pod (LimitRange)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: devops-tools-limits
+  namespace: devops-tools
+spec:
+  limits:
+  - type: Container
+    # --- SAFETY NET (Si un chart NO trae recursos definidos) ---
+    default:
+      cpu: "1000m"
+      memory: "2Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+
+    max:
+      cpu: "2"
+      memory: "4Gi"
+
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+---
+# 4. Aislamiento de Red (Default Deny All)
+# Bloquea todo el tráfico de entrada y salida por defecto.
+# Las reglas específicas se definen en NetworkPolicies adicionales.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: devops-tools
+  labels:
+    part-of: microservices-platform
+spec:
+  podSelector: {} # Afecta a todos los pods DENTRO de 'devops-tools'
+  policyTypes:
+  - Ingress
+  - Egress

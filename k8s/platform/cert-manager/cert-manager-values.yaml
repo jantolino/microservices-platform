@@ -1,0 +1,6 @@
+global:
+  commonLabels:
+    part-of: microservices-platform
+
+crds:
+  enabled: true

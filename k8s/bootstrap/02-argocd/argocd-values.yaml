@@ -1,0 +1,68 @@
+# --- Etiquetas Globales ---
+# Aplica la etiqueta de arquitectura a todos los recursos
+
+global:
+  additionalLabels:
+    part-of: microservices-platform
+
+# --- Configuración del Servidor de ArgoCD ---
+server:
+  # --- Exposición del Servicio ---
+  # Deshabilitamos la creación automática de un Ingress (lo crearemos en un paso posterior)
+  ingress:
+    enabled: false
+
+  # El servicio se expone internamente como ClusterIP
+  service:
+    type: ClusterIP
+
+  # --- Configuración de Seguridad ---
+  extraArgs:
+    - --insecure
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 150m
+      memory: 256Mi
+
+# --- Configuración de Componentes Adicionales (Opcional) ---
+
+# --- Recursos de Kubernetes ---
+# Ajustamos los recursos a un perfil más ligero para el entorno de desarrollo
+# (Estos valores son orientativos. Es posible que necesites ajustarlos)
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+
+repo-server:
+  resources:
+    requests:
+      cpu: 80m
+      memory: 192Mi
+    limits:
+      cpu: 200m
+      memory: 384Mi
+
+externalRedis:
+  # -- External Redis server host
+  host: redis.data-services.svc.cluster.local
+  # -- External Redis server port
+  port: 6379
+
+# Si no necesitas notificaciones, también podemos desactivarlas
+notifications:
+  enabled: false
+
+dex:
+  enabled: false
+
+redis:
+  enabled: false

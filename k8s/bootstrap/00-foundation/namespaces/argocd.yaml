@@ -1,0 +1,59 @@
+# 1. Creación del Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    part-of: microservices-platform
+---
+# 2. Presupuesto de Recursos (ResourceQuota)
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: argocd-quota
+  namespace: argocd
+spec:
+  hard:
+    requests.cpu: "600m"
+    requests.memory: "1Gi"
+
+    limits.cpu: "900m"
+    limits.memory: "1.75Gi"
+
+    pods: "10"
+---
+# 3. Límites por Defecto por Pod (LimitRange)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: argocd-limits
+  namespace: argocd
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "250m"
+        memory: "256Mi"
+      defaultRequest:
+        cpu: "50m"
+        memory: "64Mi"
+      max:
+        cpu: "500m"
+        memory: "1Gi"
+      min:
+        cpu: "20m"
+        memory: "32Mi"
+---
+# 4. Aislamiento de Red (Default Deny All)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: argocd
+  labels:
+    part-of: microservices-platform
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress

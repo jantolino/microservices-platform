@@ -1,0 +1,25 @@
+# vault-gitlab-sonarqube-values.yaml
+
+# Etiquetas globales para identificar que es parte de tu stack
+global:
+  commonLabels:
+    part-of: microservices-platform
+
+server:
+  extraLabels:
+    part-of: microservices-platform
+  podLabels:
+    part-of: microservices-platform
+
+  # Habilitamos el almacenamiento persistente para no perder
+  # los secretos si se reinicia el cluster
+  dataStorage:
+    enabled: true
+    size: 10Gi
+
+# Interfaz Gráfica (UI)
+ui:
+  enabled: true
+  serviceType: ClusterIP
+  serviceNodePort: null
+  externalPort: 8200

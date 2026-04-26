@@ -1,0 +1,55 @@
+# k8s/bootstrap/applicationset.yaml
+# ApplicationSet para desplegar Cert-Manager, External-Secrets y Vault
+# Aplicar después de que ArgoCD esté corriendo: kubectl apply -f k8s/bootstrap/applicationset.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: platform-core
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          # Cert-Manager - Wave -5 (primero, emite certificados)
+          - component: cert-manager
+            namespace: cert-manager
+            wave: "-5"
+            path: platform/cert-manager
+          # External-Secrets - Wave -4 (necesita certificados para conectar con Vault)
+          - component: external-secrets
+            namespace: security
+            wave: "-4"
+            path: platform/external-secrets
+          # Vault - Wave -3 (necesita External-Secrets operativo)
+          - component: vault
+            namespace: vault
+            wave: "-3"
+            path: platform/vault
+  template:
+    metadata:
+      name: '{{component}}'
+      annotations:
+        argocd.argoproj.io/sync-wave: '{{wave}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/jantolino/microservices-platform.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

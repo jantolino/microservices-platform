@@ -1,0 +1,68 @@
+# 1. Creación del Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    part-of: microservices-platform
+---
+# 2. Presupuesto de Recursos (ResourceQuota)
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: monitoring-quota
+  namespace: monitoring
+spec:
+  hard:
+
+    requests.cpu: "1500m"
+    requests.memory: "3.5Gi"
+    
+    # --- PICOS MÁXIMOS (Burst Protection / Undercommit) ---
+    # monitoring aloja Prometheus, Grafana, ELK, Jaeger - stack de observabilidad completo.
+    # Permitimos burst generoso ya que estos servicios pueden tener picos de ingesta.
+    limits.cpu: "1600m"
+    limits.memory: "3.8Gi"
+
+    pods: "25"
+---
+# 3. Límites por Defecto por Pod (LimitRange)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: monitoring-limits
+  namespace: monitoring
+spec:
+  limits:
+  - type: Container
+    # --- SAFETY NET (Si un chart NO trae recursos definidos) ---
+    default:
+      cpu: "500m"
+      memory: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+
+    # Ningún pod individual (ej. Elasticsearch, Prometheus) puede pedir más de estos recursos.
+    # Elasticsearch y Prometheus pueden necesitar más memoria.
+    max:
+      cpu: "1600m"
+      memory: "3.8Gi"
+    # --- PISO MÍNIMO ---
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+---
+# 4. Aislamiento de Red (Default Deny All)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: monitoring
+  labels:
+    part-of: microservices-platform
+spec:
+  podSelector: {} # Afecta a todos los pods DENTRO de 'monitoring'
+  policyTypes:
+  - Ingress
+  - Egress

@@ -1,0 +1,85 @@
+# 1. Creación del Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data-services
+  labels:
+    part-of: microservices-platform
+---
+# 2. Presupuesto de Recursos (ResourceQuota)
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: data-services-quota
+  namespace: data-services
+spec:
+  hard:
+
+    requests.cpu: "700m"
+    requests.memory: "1.5Gi"
+
+    limits.cpu: "900m"
+    limits.memory: "2Gi"
+
+    pods: "15"
+---
+# 3. Límites por Defecto por Pod (LimitRange)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: data-services-limits
+  namespace: data-services
+spec:
+  limits:
+  - type: Container
+    # --- SAFETY NET (Si un chart NO trae recursos definidos) ---
+    default:
+      cpu: "500m"
+      memory: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+    # --- TECHO INDIVIDUAL (Policía Estricta) ---
+    # Ningún pod individual (ej. PostgreSQL) puede pedir más de estos recursos.
+    max:
+      cpu: "1"
+      memory: "2Gi"
+    # --- PISO MÍNIMO ---
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+---
+# 4. Aislamiento de Red (Default Deny All)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  podSelector: {} # Afecta a todos los pods DENTRO de 'data-services'
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# 5. REGLA EXCEPCIONAL: Permitir a ArgoCD conectarse a Redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-argocd-to-redis
+  namespace: data-services
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: redis # Asegúrate de que tu chart de redis tenga esta etiqueta
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd # Etiqueta estándar de K8s del namespace de ArgoCD
+      ports:
+        - protocol: TCP
+          port: 6379 # Puerto por defecto de Redis

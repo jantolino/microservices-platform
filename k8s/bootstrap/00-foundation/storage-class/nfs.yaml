@@ -1,0 +1,13 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs
+  # SIN anotación de default. Solo se usa si el Helm Chart lo pide explícitamente
+  labels:
+    part-of: microservices-platform
+provisioner: nfs-subdir-external-provisioner
+parameters:
+  archiveOnDelete: "false"
+volumeBindingMode: Immediate
+reclaimPolicy: Retain  # En NFS sí queremos conservar si borramos el pod
+allowVolumeExpansion: true

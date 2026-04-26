@@ -1,0 +1,9 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-default
+  labels:
+    part-of: microservices-platform
+provisioner: kubernetes.io/hostpath # Genérico, te sirve en cualquier clúster local
+reclaimPolicy: Delete               # En local, si borras la DB, limpia el disco
+volumeBindingMode: Immediate
