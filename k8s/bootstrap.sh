@@ -197,7 +197,7 @@ log_info "Ejecutando: helm upgrade --install redis-operator ot-helm/redis-operat
 helm upgrade --install redis-operator ot-helm/redis-operator \
     --namespace "$NAMESPACE_DATA" \
     -f "$REDIS_OP_VALUES" \
-    --wait
+    --wait --debug
 
 log_success "Redis Operator instalado correctamente."
 
@@ -213,7 +213,7 @@ log_info "Ejecutando: helm upgrade --install redis ot-helm/redis --namespace $NA
 helm upgrade --install redis ot-helm/redis \
     --namespace "$NAMESPACE_DATA" \
     -f "$REDIS_STANDALONE_VALUES" \
-    --wait
+    --wait --debug
 
 log_success "Redis Standalone instalado correctamente."
 
@@ -242,7 +242,7 @@ log_info "Ejecutando: helm upgrade --install argocd argo/argo-cd --namespace $NA
 helm upgrade --install argocd argo/argo-cd \
     --namespace "$NAMESPACE_ARGOCD" \
     -f "$ARGOCD_VALUES" \
-    --wait
+    --wait --debug
 
 log_success "ArgoCD instalado correctamente."
 

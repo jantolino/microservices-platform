@@ -15,17 +15,17 @@ spec:
           - component: cert-manager
             namespace: cert-manager
             wave: "-5"
-            path: platform/cert-manager
+            path: k8s/platform/cert-manager
           # External-Secrets - Wave -4 (necesita certificados para conectar con Vault)
           - component: external-secrets
             namespace: security
             wave: "-4"
-            path: platform/external-secrets
+            path: k8s/platform/security/external-secrets
           # Vault - Wave -3 (necesita External-Secrets operativo)
           - component: vault
             namespace: vault
             wave: "-3"
-            path: platform/vault
+            path: k8s/platform/vault
   template:
     metadata:
       name: '{{component}}'

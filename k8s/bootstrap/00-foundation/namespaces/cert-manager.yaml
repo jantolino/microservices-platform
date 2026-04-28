@@ -15,15 +15,15 @@ metadata:
 spec:
   hard:
 
-    requests.cpu: "300m"
-    requests.memory: "600Mi"
+    requests.cpu: "500m"
+    requests.memory: "512Mi"
     
     # --- PICOS MÁXIMOS (Burst Protection / Undercommit) ---
     # NOTA DE ARQUITECTURA: Si sumamos los "limits" de TODOS los namespaces, 
     # NO deben superar las 12 CPUs / 28 GB RAM físicas de la PC.
     # cert-manager es un componente ligero, permitimos burst moderado.
-    limits.cpu: "400m"
-    limits.memory: "600Mi"
+    limits.cpu: "800m"
+    limits.memory: "1Gi"
     
     # --- CONTROL PLANO (Anti-DDoS Interno) ---
     # cert-manager tiene pocos pods (controller, webhook, cainjector).

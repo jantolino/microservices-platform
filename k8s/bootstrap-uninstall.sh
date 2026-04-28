@@ -92,12 +92,23 @@ force_delete_namespace() {
     local ns=$1
     log_warning "Forzando eliminación del namespace $ns..."
 
-    # Eliminar finalizers del namespace
-    kubectl get namespace "$ns" -o json | jq '.spec.finalizers = []' | kubectl replace --raw "/api/v1/namespaces/$ns/finalize" -f - 2>/dev/null || \
+    # Eliminar finalizers del namespace (sin jq)
     kubectl patch namespace "$ns" -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
 
     # Forzar eliminación
     kubectl delete namespace "$ns" --force --grace-period=0 2>/dev/null || true
+
+    # Si aún existe, usar el método del proxy
+    if kubectl get namespace "$ns" &>/dev/null; then
+        log_info "Usando proxy para eliminar finalizers..."
+        kubectl proxy &
+        PROXY_PID=$!
+        sleep 2
+        curl -k -H "Content-Type: application/json" -X PUT \
+            "http://localhost:8001/api/v1/namespaces/$ns/finalize" \
+            -d '{"metadata":{"finalizers":[]}}' 2>/dev/null || true
+        kill $PROXY_PID 2>/dev/null || true
+    fi
 }
 
 # ============================================
@@ -188,6 +199,22 @@ done
 # FASE 4: Eliminar namespaces (orden: argocd, data-services, luego el resto)
 # ============================================
 log_step "FASE 4: Eliminando namespaces..."
+
+# NUEVO: Limpiar aplicaciones de ArgoCD antes de eliminar el namespace
+if namespace_exists "argocd"; then
+    log_info "Eliminando todas las aplicaciones dentro del namespace argocd..."
+
+    # Eliminar todas las aplicaciones gestionadas por ArgoCD
+    kubectl delete applications --all -n argocd --wait=true 2>/dev/null || true
+
+    # Eliminar finalizers de aplicaciones que pudieran quedar
+    for app in $(kubectl get applications -n argocd -o name 2>/dev/null); do
+        kubectl patch "$app" -n argocd -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
+        kubectl delete "$app" -n argocd --force --grace-period=0 2>/dev/null || true
+    done
+
+    log_success "Aplicaciones de ArgoCD eliminadas."
+fi
 
 # Primero los namespaces con componentes
 for ns in "argocd" "data-services"; do

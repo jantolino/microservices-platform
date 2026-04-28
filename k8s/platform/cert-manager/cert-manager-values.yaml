@@ -4,3 +4,13 @@ global:
 
 crds:
   enabled: true
+
+fullnameOverride: cert-manager-v1-18-2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi

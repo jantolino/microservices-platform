@@ -5,6 +5,11 @@ global:
   additionalLabels:
     part-of: microservices-platform
 
+# Habilitar Helm en Kustomize
+configs:
+  cm:
+    kustomize.buildOptions: --enable-helm
+
 # --- Configuración del Servidor de ArgoCD ---
 server:
   # --- Exposición del Servicio ---
