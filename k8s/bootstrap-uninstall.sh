@@ -111,6 +111,43 @@ force_delete_namespace() {
     fi
 }
 
+cleanup_cluster_resources() {
+    local pattern=$1      # patrón para grep (ej. "cert-manager|argocd|redis")
+    local description=$2
+
+    log_step "Limpiando recursos de clúster para: $description"
+
+    # ClusterRoles
+    for cr in $(kubectl get clusterrole --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
+        kubectl delete clusterrole "$cr" 2>/dev/null && log_info "ClusterRole $cr eliminado" || log_warning "No se pudo eliminar ClusterRole $cr"
+    done
+
+    # ClusterRoleBindings
+    for crb in $(kubectl get clusterrolebinding --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
+        kubectl delete clusterrolebinding "$crb" 2>/dev/null && log_info "ClusterRoleBinding $crb eliminado" || log_warning "No se pudo eliminar ClusterRoleBinding $crb"
+    done
+
+    # ValidatingWebhookConfigurations
+    for vwc in $(kubectl get validatingwebhookconfiguration --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
+        kubectl delete validatingwebhookconfiguration "$vwc" 2>/dev/null && log_info "ValidatingWebhook $vwc eliminado" || true
+    done
+
+    # MutatingWebhookConfigurations
+    for mwc in $(kubectl get mutatingwebhookconfiguration --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
+        kubectl delete mutatingwebhookconfiguration "$mwc" 2>/dev/null && log_info "MutatingWebhook $mwc eliminado" || true
+    done
+
+    # CRDs
+    for crd in $(kubectl get crd --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
+        kubectl delete crd "$crd" 2>/dev/null && log_info "CRD $crd eliminado" || log_warning "No se pudo eliminar CRD $crd"
+    done
+
+    # PodSecurityPolicies (si existen, aunque obsoletas)
+    for psp in $(kubectl get psp --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
+        kubectl delete psp "$psp" 2>/dev/null && log_info "PSP $psp eliminado" || true
+    done
+}
+
 # ============================================
 # Inicio del script
 # ============================================
@@ -260,6 +297,9 @@ for ns in "${NAMESPACES[@]}"; do
         fi
     fi
 done
+
+# Llamar esta función después de haber eliminado los namespaces
+cleanup_cluster_resources "cert-manager|argocd|redis|opstreelabs" "componentes de la plataforma"
 
 # ============================================
 # FASE 5: StorageClasses (opcional - preguntar)
