@@ -7,7 +7,7 @@ global:
 server:
   resources:
     requests:
-      cpu: 300m      # reducido de 500m
+      cpu: 200m
       memory: 256Mi
     limits:
       cpu: 300m
@@ -31,3 +31,6 @@ injector:
     requests:
       cpu: 100m
       memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
