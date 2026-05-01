@@ -1,14 +1,13 @@
 # Etiquetas globales para identificar que es parte de tu stack
-extraLabels:
-    part-of: microservices-platform
-
 server:
+  extraLabels:
+    part-of: microservices-platform
 
   # Habilitamos el almacenamiento persistente para no perder
   # los secretos si se reinicia el cluster
   dataStorage:
     enabled: true
-    size: 5Gi
+    size: 10Gi
 
 # Interfaz Gráfica (UI)
 ui:
