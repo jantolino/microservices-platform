@@ -2,6 +2,8 @@
 server:
   extraLabels:
     part-of: microservices-platform
+  podLabels:
+    part-of: microservices-platform
 
   # Habilitamos el almacenamiento persistente para no perder
   # los secretos si se reinicia el cluster
