@@ -60,9 +60,9 @@ helm install vault hashicorp/vault \
 
 ```bash
 helm upgrade --install vault hashicorp/vault \
-  --namespace security \
+  --namespace vault \
   --create-namespace \
-  -f vault-sonarqube-values.yaml
+  -f vault-values.yaml
 ```
 
 ### 4.4 Verificar la instalación
@@ -141,20 +141,22 @@ Tras la instalación, Vault se encuentra sellado (sealed). Se debe inicializar y
 
 ```bash
 # Inicializar Vault (solo una vez)
-kubectl exec -it vault-0 -n security -- vault operator init
+kubectl exec -it vault-0 -n vault -- vault operator init
 
 # El comando anterior devuelve 5 Unseal Keys y un Root Token
 # Guardar estas claves de forma segura (por ejemplo, en un gestor de contraseñas).
-Unseal Key 1: GWokmouVmZtJxhs+kfVPTaORP737oTB8YakF3/idwRWx
-Unseal Key 2: e8cJttYh+67ftQV8TJhMktlw6i+7GGqrTe/BfvXycwCs
-Unseal Key 3: rLxkmZLtmnNBkjm40YDNQTOL78+nk8aw1Bp7jTOER7bI
-Unseal Key 4: gzXefVVWGcbejVi5gILtjfAtZhxpUjc8nCeyw0Hlrfmr
-Unseal Key 5: K5H+aYrYel+XhnCAKYMq2O6bTz+KleTTQx9TFY/1HdYJ
+Unseal Key 1: Zr4F3p/h5F8Bmvo2KGhMBn6hXPGo9rUClyQ7F+oP/wFg
+Unseal Key 2: HzLIVMXU/nkIfEYQU6tv1pljSKcxwLthqYpU9LUQ22Nl
+Unseal Key 3: +iYMb/WQ36ggFjQnSAhbGEuAyjfyDRldVuzojQZeTetX
+Unseal Key 4: 8JtpdG4959ZE4rbKi1URDvAKRDP1QLf3mZzwRY4WIK5e
+Unseal Key 5: Fualnq0D92PidAMmeMUuBJ1wiTV9i8gQ/dVVzrSeJmtm
+
+Initial Root Token: hvs.QRZouq1lLoSm0XnjnRZphwHc
 
 
 
 # Desbloquear Vault (requiere 3 claves)
-kubectl exec -it vault-0 -n security -- vault operator unseal
+kubectl exec -it vault-0 -n vault -- vault operator unseal
 # Repetir con tres claves diferentes
 ```
 
