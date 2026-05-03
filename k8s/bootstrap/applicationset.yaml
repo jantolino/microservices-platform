@@ -43,10 +43,6 @@ spec:
             namespace: data-services
             wave: "-1"
             path: k8s/platform/data-services/ddbb/postgres
-          - component: redis
-            namespace: data-services
-            wave: "-1"
-            path: k8s/platform/data-services/redis
           - component: rabbitmq
             namespace: data-services
             wave: "-1"
@@ -91,10 +87,6 @@ spec:
             namespace: security
             wave: "3"
             path: k8s/platform/security/trivy
-          - component: dashboard
-            namespace: kubernetes-dashboard
-            wave: "3"
-            path: k8s/platform/dashboard
 
   template:
     metadata:
