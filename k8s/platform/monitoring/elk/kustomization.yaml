@@ -1,12 +1,26 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: <NAMESPACE_DEL_COMPONENTE>
+namespace: monitoring
 
 helmCharts:
-  - name: <NOMBRE_DEL_CHART>
-    repo: <URL_DEL_REPO_HELM>
-    version: <VERSION>
-    releaseName: <RELEASE_NAME>
-    namespace: <NAMESPACE_DEL_COMPONENTE>
-    valuesFile: values.yaml
+  - name: elasticsearch
+    repo: https://helm.elastic.co
+    version: 8.5.1
+    releaseName: elasticsearch
+    namespace: monitoring
+    valuesFile: elasticsearch-values.yaml
+
+  - name: kibana
+    repo: https://helm.elastic.co
+    version: 8.5.1
+    releaseName: kibana
+    namespace: monitoring
+    valuesFile: kibana-values.yaml
+
+  - name: filebeat
+    repo: https://helm.elastic.co
+    version: 8.5.1
+    releaseName: filebeat
+    namespace: monitoring
+    valuesFile: filebeat-values.yaml

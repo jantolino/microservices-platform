@@ -4,9 +4,9 @@ kind: Kustomization
 namespace: security
 
 helmCharts:
-  - name: aqua-trivy-operator
+  - name: trivy
     repo: https://aquasecurity.github.io/helm-charts
     version: 0.32.1
-    releaseName: aqua-trivy-operator-0.32.1
+    releaseName: trivy
     namespace: security
     valuesFile: trivy-values.yaml

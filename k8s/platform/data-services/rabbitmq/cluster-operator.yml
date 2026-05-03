@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: rabbitmq-system
     app.kubernetes.io/part-of: rabbitmq
     part-of: microservices-platform
-  name: event-management
+  name: data-services
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -5545,7 +5545,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: rabbitmq-cluster-operator
-  namespace: event-management
+  namespace: data-services
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -5556,7 +5556,7 @@ metadata:
     app.kubernetes.io/part-of: rabbitmq
     part-of: microservices-platform
   name: rabbitmq-cluster-leader-election-role
-  namespace: event-management
+  namespace: data-services
 rules:
 - apiGroups:
   - ""
@@ -5723,7 +5723,7 @@ metadata:
     app.kubernetes.io/part-of: rabbitmq
     part-of: microservices-platform
   name: rabbitmq-cluster-leader-election-rolebinding
-  namespace: event-management
+  namespace: data-services
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -5731,7 +5731,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: rabbitmq-cluster-operator
-  namespace: event-management
+  namespace: data-services
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -5749,7 +5749,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: rabbitmq-cluster-operator
-  namespace: event-management
+  namespace: data-services
 ---
 apiVersion: v1
 kind: Service
@@ -5760,7 +5760,7 @@ metadata:
     app.kubernetes.io/part-of: rabbitmq
     part-of: microservices-platform
   name: rabbitmq-cluster-operator-metrics-service
-  namespace: event-management
+  namespace: data-services
 spec:
   ports:
   - name: http
@@ -5779,7 +5779,7 @@ metadata:
     app.kubernetes.io/part-of: rabbitmq
     part-of: microservices-platform
   name: rabbitmq-cluster-operator
-  namespace: event-management
+  namespace: data-services
 spec:
   replicas: 1
   selector:

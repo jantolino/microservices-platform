@@ -1,12 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: <NAMESPACE_DEL_COMPONENTE>
+namespace: devops-tools
 
 helmCharts:
-  - name: <NOMBRE_DEL_CHART>
-    repo: <URL_DEL_REPO_HELM>
-    version: <VERSION>
-    releaseName: <RELEASE_NAME>
-    namespace: <NAMESPACE_DEL_COMPONENTE>
-    valuesFile: values.yaml
+  - name: jenkins
+    repo: https://charts.jenkins.io
+    version: 5.9.18
+    releaseName: jenkins
+    namespace: devops-tools
+    valuesFile: jenkins-values.yaml

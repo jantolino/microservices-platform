@@ -1,6 +1,7 @@
 # k8s/bootstrap/applicationset.yaml
-# ApplicationSet para desplegar Cert-Manager, External-Secrets y Vault
-# Aplicar después de que ArgoCD esté corriendo: kubectl apply -f k8s/bootstrap/applicationset.yaml
+# ApplicationSet que despliega toda la plataforma respetando dependencias mediante sync-waves.
+# Pre-requisito: ArgoCD operativo y AppProject 'devops-platform' creado.
+# Aplicar con: kubectl apply -f k8s/bootstrap/applicationset.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -8,45 +9,120 @@ metadata:
   name: platform-core
   namespace: argocd
 spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   generators:
     - list:
         elements:
-          # Cert-Manager - Wave -5 (primero, emite certificados)
+          # ───────── Wave -5: Emisión de certificados ─────────
           - component: cert-manager
             namespace: cert-manager
             wave: "-5"
             path: k8s/platform/cert-manager
-          # External-Secrets - Wave -4 (necesita certificados para conectar con Vault)
+
+          # ───────── Wave -4: Gestor de secretos ─────────
           - component: external-secrets
             namespace: security
             wave: "-4"
             path: k8s/platform/security/external-secrets
-          # Vault - Wave -3 (necesita External-Secrets operativo)
+
+          # ───────── Wave -3: Backend de secretos ─────────
           - component: vault
             namespace: vault
             wave: "-3"
             path: k8s/platform/vault
+
+          # ───────── Wave -2: Ingress / L7 ─────────
+          - component: traefik
+            namespace: networking
+            wave: "-2"
+            path: k8s/platform/networking/traefik
+
+          # ───────── Wave -1: Servicios de datos ─────────
+          - component: postgres
+            namespace: data-services
+            wave: "-1"
+            path: k8s/platform/data-services/ddbb/postgres
+          - component: redis
+            namespace: data-services
+            wave: "-1"
+            path: k8s/platform/data-services/redis
+          - component: rabbitmq
+            namespace: data-services
+            wave: "-1"
+            path: k8s/platform/data-services/rabbitmq
+
+          # ───────── Wave 0: Repositorios y artefactos ─────────
+          - component: gitlab
+            namespace: gitlab
+            wave: "0"
+            path: k8s/platform/repositories/gitlab
+          - component: artifactory
+            namespace: devops-tools
+            wave: "0"
+            path: k8s/platform/devops-tools/artifactory
+
+          # ───────── Wave 1: CI/CD y calidad ─────────
+          - component: jenkins
+            namespace: devops-tools
+            wave: "1"
+            path: k8s/platform/devops-tools/jenkins
+          - component: sonarqube
+            namespace: devops-tools
+            wave: "1"
+            path: k8s/platform/devops-tools/sonarqube
+
+          # ───────── Wave 2: Observabilidad ─────────
+          - component: prometheus-stack
+            namespace: monitoring
+            wave: "2"
+            path: k8s/platform/monitoring/prometheus-stack
+          - component: elk
+            namespace: monitoring
+            wave: "2"
+            path: k8s/platform/monitoring/elk
+          - component: jaeger
+            namespace: monitoring
+            wave: "2"
+            path: k8s/platform/monitoring/jaeger
+
+          # ───────── Wave 3: Seguridad y gestión ─────────
+          - component: trivy
+            namespace: security
+            wave: "3"
+            path: k8s/platform/security/trivy
+          - component: dashboard
+            namespace: kubernetes-dashboard
+            wave: "3"
+            path: k8s/platform/dashboard
+
   template:
     metadata:
-      name: '{{component}}'
+      name: '{{ .component }}'
       annotations:
-        argocd.argoproj.io/sync-wave: '{{wave}}'
+        argocd.argoproj.io/sync-wave: '{{ .wave }}'
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
     spec:
       project: default
       source:
         repoURL: https://github.com/jantolino/microservices-platform.git
         targetRevision: HEAD
-        path: '{{path}}'
+        path: '{{ .path }}'
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{namespace}}'
+        namespace: '{{ .namespace }}'
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
+          allowEmpty: false
         syncOptions:
           - CreateNamespace=true
           - PrunePropagationPolicy=foreground
+          - ServerSideApply=true
+          - RespectIgnoreDifferences=true
+          - ApplyOutOfSyncOnly=true
         retry:
           limit: 5
           backoff:
