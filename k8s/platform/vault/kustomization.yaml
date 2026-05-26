@@ -3,6 +3,10 @@ kind: Kustomization
 
 namespace: vault
 
+resources:
+  - vault-network-policy.yaml
+  - vault-service-monitor.yaml
+
 helmCharts:
   - name: vault
     repo: https://helm.releases.hashicorp.com

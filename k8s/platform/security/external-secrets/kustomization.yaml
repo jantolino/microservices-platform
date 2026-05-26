@@ -3,6 +3,11 @@ kind: Kustomization
 
 namespace: security
 
+resources:
+  - external-secret-network-policy.yaml
+  - external-secrets-service-monitor.yaml
+  - cluster-secret-store.yaml
+
 helmCharts:
   - name: external-secrets
     repo: https://charts.external-secrets.io
@@ -10,6 +15,3 @@ helmCharts:
     releaseName: external-secrets
     namespace: security
     valuesFile: external-secrets-values.yaml
-
-resources:
-  - cluster-secret-store.yaml

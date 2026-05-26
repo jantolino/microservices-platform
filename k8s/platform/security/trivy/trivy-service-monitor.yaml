@@ -1,18 +1,19 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: rabbitmq-metrics
-  namespace: data-services
+  name: trivy-metrics
+  namespace: security
   labels:
     release: prometheus
-    part-of: microservices-platform
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: rabbitmq
+      app.kubernetes.io/name: trivy
+      app.kubernetes.io/component: operator
   namespaceSelector:
     matchNames:
-      - data-services
+      - security
   endpoints:
-    - port: prometheus
+    - port: metrics
+      path: /metrics
       interval: 30s

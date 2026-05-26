@@ -8,6 +8,7 @@ resources:
   - namespaces/cert-manager.yaml
   - namespaces/data-services.yaml
   - namespaces/devops-tools.yaml
+  - namespaces/microservices.yaml
   - namespaces/monitoring.yaml
   - namespaces/networking.yaml
   - namespaces/repositories.yaml

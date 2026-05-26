@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: rabbitmq-zero-trust
+  namespace: data-services
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq
+  policyTypes:
+    - Ingress
+  ingress:
+    # Microservicios (Asumimos que cualquier pod en ese ns puede publicar/consumir)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: microservices
+      ports:
+        - port: 5672 # AMQP
+        - port: 15672 # Management UI (si lo necesitas exponer internamente)

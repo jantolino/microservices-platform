@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: prometheus-scrape-netpol
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  policyTypes:
+    - Egress
+  egress:
+    # Lista blanca estricta hacia pods específicos que exponen /metrics
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: argocd-server
+      ports:
+        - port: 8080
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: vault
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vault
+      ports:
+        - port: 8200
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-services
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+      ports:
+        - port: 9187 # Puerto típico del postgres-exporter
+    # ... (Repetir este bloque para cada componente: gitlab, jenkins, traefik, etc, apuntando siempre al pod específico y al puerto de métricas)

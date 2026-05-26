@@ -1,18 +1,18 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: rabbitmq-metrics
-  namespace: data-services
+  name: artifactory-metrics
+  namespace: devops-tools
   labels:
     release: prometheus
-    part-of: microservices-platform
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: rabbitmq
+      app.kubernetes.io/name: artifactory
   namespaceSelector:
     matchNames:
-      - data-services
+      - devops-tools
   endpoints:
-    - port: prometheus
+    - port: artifactory-metrics
+      path: /artifactory/api/v1/metrics
       interval: 30s

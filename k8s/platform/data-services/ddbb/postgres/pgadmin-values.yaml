@@ -8,26 +8,24 @@ image:
 
 env:
   email: "admin@desarrollo.edu"
-  password: "pgadmin123"
   enhanced_cookie_protection: "False"
 
 serverDefinitions:
   enabled: true
   servers:
     dev-postgres:
-      Name: "PostgreSQL - devops-tools"
+      Name: "PostgreSQL - data-services"
       Group: "Servers"
       Port: 5432
       Username: "postgres"
-      Password: "postgres123"
-      Host: "postgresql.devops-tools.svc.cluster.local"
+      Host: "postgresql.data-services.svc.cluster.local"
       SSLMode: "prefer"
       MaintenanceDB: "postgres"
 
 persistentVolume:
   enabled: true
   size: 1Gi
-  storageClass: "standard"
+  storageClass: ""
 
 service:
   type: ClusterIP

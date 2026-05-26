@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin4-v1-62-0
+  labels:
+    part-of: microservices-platform
+spec:
+  template:
+    spec:
+      containers:
+        - name: pgadmin # Nombre del container principal
+          env:
+            # Inyecta contraseña de la UI
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgadmin-secrets
+                  key: PGADMIN_DEFAULT_PASSWORD

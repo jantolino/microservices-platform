@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-zero-trust
+  namespace: data-services
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+  policyTypes:
+    - Ingress
+  ingress:
+    # Permitir a GitLab
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: repositories
+          podSelector:
+            matchLabels:
+              app: gitlab-webservice-default
+      ports:
+        - port: 6379
+    # Permitir a ArgoCD (Si lo configuraste para usar este Redis)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: argocd-server
+      ports:
+        - port: 6379

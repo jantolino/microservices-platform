@@ -1,0 +1,65 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gitlab-zero-trust
+  namespace: repositories
+spec:
+  podSelector:
+    matchLabels:
+      app: gitlab-webservice-default # Ajusta la etiqueta si tu chart usa otra
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # 1. Traffik (Para la UI y HTTPS)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: networking
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - port: 8080
+        - port: 8181 # Si expones el SSH internal
+    # 2. ArgoCD (Para clonar repos)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: argocd-server
+      ports:
+        - port: 8080
+    # 3. Prometheus (Scrape de métricas)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - port: 8080
+  egress:
+    # 1. Hacia Postgres
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-services
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+      ports:
+        - port: 5432
+    # 2. Hacia Redis
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-services
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+      ports:
+        - port: 6379

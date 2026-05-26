@@ -1,18 +1,18 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: rabbitmq-metrics
-  namespace: data-services
+  name: elasticsearch-metrics
+  namespace: monitoring
   labels:
     release: prometheus
-    part-of: microservices-platform
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: rabbitmq
+      app.kubernetes.io/name: elasticsearch
   namespaceSelector:
     matchNames:
-      - data-services
+      - monitoring
   endpoints:
-    - port: prometheus
+    - port: http
+      path: _prometheus/metrics
       interval: 30s

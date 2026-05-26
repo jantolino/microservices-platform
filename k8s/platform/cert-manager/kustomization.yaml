@@ -3,6 +3,10 @@ kind: Kustomization
 
 namespace: cert-manager
 
+resources:
+  - cluster-issuer.yaml
+  - cert-manager-service-monitor.yaml
+
 helmCharts:
   - name: cert-manager
     repo: https://charts.jetstack.io
@@ -10,6 +14,3 @@ helmCharts:
     releaseName: cert-manager-v1-18-2
     namespace: cert-manager
     valuesFile: cert-manager-values.yaml
-
-resources:
-  - cluster-issuer.yaml

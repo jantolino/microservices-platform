@@ -12,7 +12,9 @@ image:
 
 # Credenciales del superusuario
 auth:
-  postgresPassword: "postgres123"   # Contraseña de administrador
+  existingSecret: "postgres-credentials" # <--- Nombre del Secret que ESO creará
+  secretKeys:
+    postgresPasswordKey: "POSTGRES_PASSWORD" # <--- La key dentro de ese Secret  # Contraseña de administrador
 
 # Recursos reducidos (modo standalone)
 architecture: standalone
@@ -26,14 +28,9 @@ primary:
       memory: 512Mi
   persistence:
     enabled: true
-    storageClass: "standard"
+    storageClass: ""
     size: 3Gi
 
-# Integración con Prometheus (opcional)
+# Integración con Prometheus
 metrics:
   enabled: true
-  serviceMonitor:
-    enabled: true
-    labels:
-      release: prometheus
-    interval: 30s

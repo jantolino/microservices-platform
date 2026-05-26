@@ -1,0 +1,63 @@
+# 1. Creación del Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: microservices
+  labels:
+    part-of: microservices-platform
+---
+# 2. Presupuesto de Recursos (ResourceQuota)
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: microservices-quota
+  namespace: microservices
+spec:
+  hard:
+
+    requests.cpu: "700m"
+    requests.memory: "1.5Gi"
+
+    limits.cpu: "900m"
+    limits.memory: "2Gi"
+
+    pods: "10"
+---
+# 3. Límites por Defecto por Pod (LimitRange)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: microservices-limits
+  namespace: microservices
+spec:
+  limits:
+  - type: Container
+    # --- SAFETY NET (Si un chart NO trae recursos definidos) ---
+    default:
+      cpu: "500m"
+      memory: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+
+    max:
+      cpu: "1"
+      memory: "2Gi"
+
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+---
+# 4. Aislamiento de Red (Default Deny All)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: microservices
+  labels:
+    part-of: microservices-platform
+spec:
+  podSelector: {} # Afecta a todos los pods DENTRO de 'vault'
+  policyTypes:
+  - Ingress
+  - Egress

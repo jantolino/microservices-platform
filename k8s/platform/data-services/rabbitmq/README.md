@@ -166,7 +166,7 @@ spec:
 Aplica:
 
 ```bash
-kubectl apply -f rabbitmq-service-monitor.yaml
+kubectl apply -f rabbitmq-service-monitor-old.yaml
 ```
 
 ### 6.2 Traefik (Ingress)

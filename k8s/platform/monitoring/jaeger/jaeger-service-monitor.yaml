@@ -1,18 +1,19 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: rabbitmq-metrics
-  namespace: data-services
+  name: jaeger-collector-metrics
+  namespace: monitoring
   labels:
     release: prometheus
-    part-of: microservices-platform
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: rabbitmq
+      app.kubernetes.io/name: jaeger
+      app.kubernetes.io/component: collector
   namespaceSelector:
     matchNames:
-      - data-services
+      - monitoring
   endpoints:
-    - port: prometheus
+    - port: admin-http
+      path: /metrics
       interval: 30s

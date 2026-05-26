@@ -50,7 +50,7 @@ spec:
 
           # ───────── Wave 0: Repositorios y artefactos ─────────
           - component: gitlab
-            namespace: gitlab
+            namespace: repositories
             wave: "0"
             path: k8s/platform/repositories/gitlab
           - component: artifactory

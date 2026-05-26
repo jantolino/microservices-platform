@@ -1,18 +1,18 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: rabbitmq-metrics
-  namespace: data-services
+  name: vault-metrics
+  namespace: vault
   labels:
     release: prometheus
-    part-of: microservices-platform
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: rabbitmq
+      app.kubernetes.io/name: vault
   namespaceSelector:
     matchNames:
-      - data-services
+      - vault
   endpoints:
-    - port: prometheus
+    - port: http-metrics # El chart oficial expone las métricas en este puerto
+      path: /v1/sys/metrics
       interval: 30s

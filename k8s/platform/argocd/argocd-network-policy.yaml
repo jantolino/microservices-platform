@@ -1,0 +1,43 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-zero-trust
+  namespace: argocd
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-server # Protege el server principal
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: networking
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - port: 8080
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - port: 8080 # Puerto por defecto de métricas de ArgoCD
+  egress:
+    # Clonar repos de GitLab (HTTPS)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: repositories
+          podSelector:
+            matchLabels:
+              app: gitlab-webservice-default
+      ports:
+        - port: 8080
+        - port: 8181

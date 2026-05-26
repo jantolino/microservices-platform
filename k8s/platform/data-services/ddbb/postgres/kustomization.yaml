@@ -3,17 +3,24 @@ kind: Kustomization
 
 namespace: data-services
 
+resources:
+  - postgres-service-monitor.yaml
+  - postgres-network-policy.yaml
+  - postgres-es.yaml
+  - pgadmin-es.yaml
+  - pgadmin-env-patch.yaml
+
 helmCharts:
   - name: postgresql
     repo: https://charts.bitnami.com/bitnami
     version: 18.6.2
-    releaseName: postgresql
+    releaseName: postgresql-v18-6-2
     namespace: data-services
     valuesFile: postgresql-values.yaml
 
   - name: pgadmin4
     repo: https://helm.runix.net
     version: 1.62.0
-    releaseName: pgadmin4
+    releaseName: pgadmin4-v1-62-0
     namespace: data-services
     valuesFile: pgadmin-values.yaml

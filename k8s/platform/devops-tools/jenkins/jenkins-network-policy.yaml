@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: jenkins-zero-trust
+  namespace: devops-tools
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: jenkins
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: networking
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - port: 8080
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - port: 8080
+  egress:
+    # Jenkins clona código desde GitLab
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: repositories
+          podSelector:
+            matchLabels:
+              app: gitlab-webservice-default
+      ports:
+        - port: 8080
