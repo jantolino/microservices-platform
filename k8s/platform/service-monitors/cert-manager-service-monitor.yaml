@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cert-manager-metrics
+  namespace: cert-manager
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cert-manager # Ajusta si tu chart usa otra etiqueta
+  namespaceSelector:
+    matchNames:
+      - cert-manager
+  endpoints:
+    - port: http-metrics # Puerto por defecto de métricas de cert-manager
+      path: /metrics
+      interval: 30s

@@ -4,7 +4,6 @@ kind: Kustomization
 namespace: data-services
 
 resources:
-  - postgres-service-monitor.yaml
   - postgres-network-policy.yaml
   - postgres-es.yaml
   - pgadmin-es.yaml

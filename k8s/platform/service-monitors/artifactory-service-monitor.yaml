@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: artifactory-metrics
+  namespace: devops-tools
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: artifactory
+  namespaceSelector:
+    matchNames:
+      - devops-tools
+  endpoints:
+    - port: artifactory-metrics
+      path: /artifactory/api/v1/metrics
+      interval: 30s

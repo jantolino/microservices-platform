@@ -8,7 +8,9 @@
 *.ear
 *.nar
 hs_err_pid*
-
+get_helm.sh
+kubectl
+minikube-linux-amd64
 ##############################
 ## Maven
 ##############################

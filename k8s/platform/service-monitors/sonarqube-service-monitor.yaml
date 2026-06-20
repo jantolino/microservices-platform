@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sonarqube-metrics
+  namespace: devops-tools
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sonarqube
+  namespaceSelector:
+    matchNames:
+      - devops-tools
+  endpoints:
+    - port: http
+      path: /api/prometheus/metrics
+      interval: 30s

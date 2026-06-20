@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: trivy-metrics
+  namespace: security
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: trivy
+      app.kubernetes.io/component: operator
+  namespaceSelector:
+    matchNames:
+      - security
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

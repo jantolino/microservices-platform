@@ -101,8 +101,12 @@ graph TD
 ### 🔧 Configuración inicial de Minikube
 
 ```bash
-minikube start --cpus=12 --memory=28672 --disk-size=100g --driver=docker
-minikube start --cpus=8 --memory=20480 --disk-size=100g --driver=docker
+# Sistema con ~24GB RAM (recomendado: dejar ~4-5GB para el SO)
+minikube start --cpus=8 --memory=18432 --disk-size=100g --driver=docker
+
+# Sistema con 32GB RAM o más
+# minikube start --cpus=12 --memory=28672 --disk-size=100g --driver=docker
+
 minikube addons enable metrics-server
 minikube addons enable storage-provisioner
 ```

@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Los ServiceMonitors se despliegan cada uno en su propio namespace (definido en cada YAML).
+# No se fuerza un namespace global aquí para no sobreescribir los namespaces individuales.
+
+resources:
+  # --- Infraestructura base ---
+  - cert-manager-service-monitor.yaml
+  - external-secrets-service-monitor.yaml
+  - vault-service-monitor.yaml
+
+  # --- Networking ---
+  - traefik-service-monitor.yaml
+
+  # --- Datos ---
+  - postgres-service-monitor.yaml
+  - rabbitmq-service-monitor.yaml
+  - redis-service-monitor.yaml
+
+  # --- Repositorios y CI/CD ---
+  - gitlab-service-monitor.yaml
+  - artifactory-service-monitor.yaml
+  - jenkins-service-monitor.yaml
+  - sonarqube-service-monitor.yaml
+
+  # --- Observabilidad (ELK + Jaeger) ---
+  - elasticsearch-service-monitor.yaml
+  - kibana-service-monitor.yaml
+  - filebeat-service-monitor.yaml
+  - jaeger-service-monitor.yaml
+
+  # --- Seguridad ---
+  - trivy-service-monitor.yaml
+
+  # --- GitOps ---
+  - argocd-service-monitor.yaml

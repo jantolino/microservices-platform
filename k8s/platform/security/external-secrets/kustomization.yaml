@@ -5,7 +5,6 @@ namespace: security
 
 resources:
   - external-secret-network-policy.yaml
-  - external-secrets-service-monitor.yaml
   - cluster-secret-store.yaml
 
 helmCharts:

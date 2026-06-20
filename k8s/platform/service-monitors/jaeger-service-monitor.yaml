@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: jaeger-collector-metrics
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jaeger
+      app.kubernetes.io/component: collector
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  endpoints:
+    - port: admin-http
+      path: /metrics
+      interval: 30s
