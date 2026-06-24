@@ -17,10 +17,13 @@ redisStandalone:
     storageClassName: ""
     storageSize: 3Gi
 
+
   # Desactivar autenticación (opcional, para simplificar)
   redisSecret:
     secretName: ""
 
+externalConfig:
+  enabled: true
 
 serviceMonitor:
   enabled: false
