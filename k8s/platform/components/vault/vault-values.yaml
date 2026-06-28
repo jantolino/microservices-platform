@@ -1,0 +1,36 @@
+# Etiquetas globales para identificar que es parte de tu stack
+
+global:
+  commonLabels:
+    part-of: microservices-platform
+
+server:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+  # Habilitamos el almacenamiento persistente para no perder
+  # los secretos si se reinicia el cluster
+  dataStorage:
+    enabled: true
+    size: 10Gi
+
+# Interfaz Gráfica (UI)
+ui:
+  enabled: true
+  serviceType: ClusterIP
+  serviceNodePort: null
+  externalPort: 8200
+
+injector:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi

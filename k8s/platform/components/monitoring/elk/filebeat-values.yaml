@@ -1,0 +1,17 @@
+daemonset:
+  labels:
+    part-of: microservices-platform
+
+  securityContext:
+    runAsUser: 0
+    privileged: true
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "250Mi"
+    limits:
+      memory: "512Mi"
+
+# Usamos las variables definidas arriba para que no haya errores de dedo
+elasticsearchHosts: "http://elasticsearch-master:9200"

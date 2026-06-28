@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Agrupación por tipo: todos los ClusterSecretStore de la plataforma.
+# Dependen del CRD instalado por external-secrets (wave -4) y de Vault (wave -3),
+# por lo que se despliegan en una wave posterior vía la Application de ArgoCD.
+
+resources:
+  - vault-backend.yaml

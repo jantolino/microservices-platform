@@ -1,0 +1,36 @@
+# postgresql-sonarqube-values.yaml
+# PostgreSQL para GitLab y Nexus con imagen bitnamilegacy
+
+commonLabels:
+  part-of: microservices-platform
+
+image:
+  registry: docker.io
+  repository: bitnamilegacy/postgresql
+  tag: 17.6.0-debian-12-r2   # Ajusta al tag existente
+  pullPolicy: IfNotPresent
+
+# Credenciales del superusuario
+auth:
+  existingSecret: "postgres-credentials" # <--- Nombre del Secret que ESO creará
+  secretKeys:
+    postgresPasswordKey: "POSTGRES_PASSWORD" # <--- La key dentro de ese Secret  # Contraseña de administrador
+
+# Recursos reducidos (modo standalone)
+architecture: standalone
+primary:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 3Gi
+
+# Integración con Prometheus
+metrics:
+  enabled: true
