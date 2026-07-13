@@ -1,2 +1,2 @@
 enableCertManager: true
-enablePrometheus: false
+enableMonitoring: false
