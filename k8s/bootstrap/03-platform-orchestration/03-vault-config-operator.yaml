@@ -16,10 +16,6 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: secrets-manager
-  ignoreDifferences:
-    - group: monitoring.coreos.com
-      kind: ServiceMonitor
-      name: vault-config-operator-controller-manager-metrics-monitor
   syncPolicy:
     automated:
       prune: true
@@ -27,4 +23,3 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - SkipDryRunOnMissingResource=true
