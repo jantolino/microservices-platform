@@ -1,1 +1,2 @@
 enableCertManager: true
+enablePrometheus: false

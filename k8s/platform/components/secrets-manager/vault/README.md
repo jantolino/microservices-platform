@@ -141,22 +141,22 @@ Tras la instalación, Vault se encuentra sellado (sealed). Se debe inicializar y
 
 ```bash
 # Inicializar Vault (solo una vez)
-kubectl exec -it vault-v0-32-0-0 -n vault -- vault operator init
+kubectl exec -n secrets-manager vault-0 -- vault operator init
 
 # El comando anterior devuelve 5 Unseal Keys y un Root Token
 # Guardar estas claves de forma segura (por ejemplo, en un gestor de contraseñas).
-Unseal Key 1: 6JOWfMAddbXs37899pEcOwfI/mIkvPPl6Xyg3s4ASzQL
-Unseal Key 2: D0XA5uDBvMaE0kqf9oDiKUa5lJLgdqeJS6s7dX+DL+hl
-Unseal Key 3: D+OByBYGhhXP3kw5r2lxpg70ljef/ysEa1MlxJ3ZngNX
-Unseal Key 4: nscrzRaH4MJXsWGX5HZjtFG1QEooN9D6oXlcN3WDiHJ+
-Unseal Key 5: tJl9S6FzNTRMOYAjYqTmyo4IDDVmJftWSKxcED0Sop4e
+Unseal Key 1: SvomMiy8f6OLNXg0leXSM1x/V5Zswbkaq8oYlzS4Ywcg
+Unseal Key 2: qZHDODe+LxoTQB/1SKE7wnl6Ep6XeS4mOPOLO5TwmY9H
+Unseal Key 3: Knprfte5gypjFcrmiMUhSDaCbkbDcmJXfvqBFD/pGtNg
+Unseal Key 4: nomRxJdi/F2N8JT2d6WwI4Zm79tqWG3W+jM5mlzlVQFk
+Unseal Key 5: xQ8fsQjmKEnPWr/Tdx+5LwbPOhjkpAPCvu+LTJIbd9I1
 
-Initial Root Token: hvs.hMhKso8zaiK9IbE672shJRty
+Initial Root Token: hvs.ALrYPxgoEbgLOYdU5qeYituJ
 
 
 
 # Desbloquear Vault (requiere 3 claves)
-kubectl exec -it vault-v0-32-0-0 -n vault -- vault operator unseal
+kubectl exec -it vault-0 -n secrets-manager -- vault operator unseal
 # Repetir con tres claves diferentes
 ```
 
