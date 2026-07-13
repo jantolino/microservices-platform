@@ -2,13 +2,14 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: vault-zero-trust
-  namespace: vault
+  namespace: secrets-manager
 spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/name: vault
   policyTypes:
     - Ingress
+    - Egress
   ingress:
     # 1. External Secrets Operator (ESO)
     - from:
@@ -30,3 +31,21 @@ spec:
               app.kubernetes.io/name: traefik
       ports:
         - port: 8200
+  egress:
+    # 1. DNS (resolucion de nombres del cluster)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # 2. API server de Kubernetes (TokenReview del auth method kubernetes)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 6443

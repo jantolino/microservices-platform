@@ -13,7 +13,7 @@ resources:
   - namespaces/networking.yaml
   - namespaces/repositories.yaml
   - namespaces/security.yaml
-  - namespaces/vault.yaml
+  - namespaces/secrets-manager.yaml
 
   # ==========================================
   # Storage Classes (Infraestructura de Discos)

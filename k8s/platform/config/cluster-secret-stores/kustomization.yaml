@@ -6,4 +6,5 @@ kind: Kustomization
 # por lo que se despliegan en una wave posterior vía la Application de ArgoCD.
 
 resources:
+  - external-secrets-vault-sa.yaml
   - vault-backend.yaml

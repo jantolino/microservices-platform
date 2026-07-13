@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: secrets-manager
+
+resources:
+  - operator-network-policy.yaml
+
+helmCharts:
+  - name: vault-config-operator
+    repo: https://redhat-cop.github.io/vault-config-operator
+    version: 0.8.49
+    releaseName: vault-config-operator
+    namespace: secrets-manager
+    valuesFile: values.yaml

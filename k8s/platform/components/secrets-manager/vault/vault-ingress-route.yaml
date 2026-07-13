@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: vault-ui-route
-  namespace: vault  # Muy importante: debe coincidir con el namespace de Vault
+  namespace: secrets-manager  # Muy importante: debe coincidir con el namespace de Vault
   labels:
     part-of: microservices-platform
 spec:

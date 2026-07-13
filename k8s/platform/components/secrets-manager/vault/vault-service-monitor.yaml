@@ -2,7 +2,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: vault-metrics
-  namespace: vault
+  namespace: secrets-manager
   labels:
     release: prometheus
 spec:
@@ -11,7 +11,7 @@ spec:
       app.kubernetes.io/name: vault
   namespaceSelector:
     matchNames:
-      - vault
+      - secrets-manager
   endpoints:
     - port: http-metrics # El chart oficial expone las métricas en este puerto
       path: /v1/sys/metrics

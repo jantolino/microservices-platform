@@ -7,12 +7,15 @@ metadata:
 spec:
   provider:
     vault:
-      server: "http://vault.vault.svc.cluster.local:8200" # <--- Cambio a HTTP
+      server: "http://vault.secrets-manager.svc.cluster.local:8200"
       path: "secret"
       version: "v2"
-      # Eliminado el bloque tls:
       auth:
-        tokenSecretRef:
-          name: "vault-token"
-          key: "token"
-          namespace: "security" # El token vive en el namespace de ESO
+        # Zero-trust: sin token estatico. ESO presenta un JWT efimero de su
+        # ServiceAccount; Vault lo valida via TokenReview.
+        kubernetes:
+          mountPath: "kubernetes"
+          role: "external-secrets"
+          serviceAccountRef:
+            name: "external-secrets-vault"
+            namespace: "security"
