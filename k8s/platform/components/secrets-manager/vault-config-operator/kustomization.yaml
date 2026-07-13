@@ -13,3 +13,4 @@ helmCharts:
     releaseName: vault-config-operator
     namespace: secrets-manager
     valuesFile: values.yaml
+    includeCRDs: true
