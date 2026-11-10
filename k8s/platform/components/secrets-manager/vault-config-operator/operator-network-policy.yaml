@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: vault-config-operator-egress
+  name: vault-config-operator-network-policy
   namespace: secrets-manager
   labels:
     part-of: microservices-platform
@@ -10,8 +10,26 @@ spec:
     matchLabels:
       app.kubernetes.io/name: vault-config-operator
   policyTypes:
+    - Ingress # <--- AGREGADO
     - Egress
+  ingress:
+    # 1. Permitir a Kubelet hacer los Health Checks (puerto 8081)
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 8081
+          protocol: TCP
+    # 2. Permitir a la API de Kubernetes llamar a los Webhooks (puerto 9443)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system # La API suele estar aquí o desde los nodos
+      ports:
+        - port: 9443
+          protocol: TCP
   egress:
+    # ... (Mantén todo tu bloque de Egress exactamente como lo tienes)
     - to:
         - namespaceSelector: {}
       ports:
