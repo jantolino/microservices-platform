@@ -21,7 +21,19 @@ spec:
               app.kubernetes.io/name: external-secrets
       ports:
         - port: 8200
-    # 2. Traefik (Solo para la UI de Vault)
+
+    # 2. Vault Config Operator
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: secrets-manager
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vault-config-operator
+      ports:
+        - port: 8200
+
+    # 3. Traefik (Solo para la UI de Vault)
     - from:
         - namespaceSelector:
             matchLabels:

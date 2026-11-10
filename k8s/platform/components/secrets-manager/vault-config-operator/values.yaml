@@ -1,2 +1,5 @@
 enableCertManager: true
 enableMonitoring: false
+env:
+  - name: VAULT_ADDR
+    value: http://vault.secrets-manager.svc.cluster.local:8200
