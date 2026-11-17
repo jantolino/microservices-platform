@@ -1,0 +1,30 @@
+# TLS pendiente de la tarea 1.5 (CA propia + TLSStore de Traefik); de momento solo web.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redis-insight-basic-auth
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  basicAuth:
+    secret: redis-insight-auth
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: redis-insight-route
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`redis-insight.dev.lab`)
+      kind: Rule
+      middlewares:
+        - name: redis-insight-basic-auth
+      services:
+        - name: redis-insight
+          port: 5540

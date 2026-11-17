@@ -1,0 +1,22 @@
+# Mínimo de arranque de Redis Insight: egress a Redis (6379). DNS lo cubre Foundation.
+# El ingreso desde Traefik va en k8s/platform/config/redis-insight/.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: redis-insight-bootstrap
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: redis-insight
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app: redis
+            redis_setup_type: standalone
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP

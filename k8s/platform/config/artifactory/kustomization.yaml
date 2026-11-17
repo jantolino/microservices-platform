@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - artifactory-es.yaml
+  - artifactory-service-monitor.yaml
+  - artifactory-network-policy.yaml
+  - artifactory-ingress-route.yaml

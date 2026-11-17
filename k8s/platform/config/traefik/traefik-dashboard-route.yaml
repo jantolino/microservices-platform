@@ -1,0 +1,31 @@
+# Dashboard y API de Traefik protegidos con BasicAuth (credencial en traefik-dashboard-auth.yaml).
+# TLS pendiente de la tarea 1.5 (TLSStore default ya creado; activar entryPoint websecure).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: traefik-dashboard-basic-auth
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  basicAuth:
+    secret: traefik-dashboard-auth
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard-route
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`traefik.dev.lab`)
+      kind: Rule
+      middlewares:
+        - name: traefik-dashboard-basic-auth
+      services:
+        - name: api@internal
+          kind: TraefikService

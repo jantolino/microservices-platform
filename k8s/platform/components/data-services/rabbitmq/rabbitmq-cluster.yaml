@@ -2,7 +2,7 @@ apiVersion: rabbitmq.com/v1beta1
 kind: RabbitmqCluster
 metadata:
   name: rabbitmq
-  namespace: event-management
+  namespace: data-services
   labels:
     part-of: microservices-platform
 spec:
@@ -16,12 +16,12 @@ spec:
       cpu: 500m      # Reducir de 2000m a 500m
       memory: 1Gi
   persistence:
-    storageClassName: standard
-    storage: 10Gi
+    storageClassName: ""
+    storage: 5Gi
   rabbitmq:
+    # Sin default_user/default_pass: el operador genera credenciales aleatorias
+    # en el Secret "rabbitmq-default-user" (kubectl get secret rabbitmq-default-user -n data-services)
     additionalConfig: |
-      default_user = admin
-      default_pass = changeme
       default_user_tags.administrator = true
       prometheus.return_per_object_metrics = true
   service:

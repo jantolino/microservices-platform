@@ -1,0 +1,24 @@
+# Mínimo de arranque: Headlamp (inCluster) necesita hablar con el API server.
+# DNS ya viene de Foundation (allow-dns). La entrada desde Traefik va en config/headlamp/.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: headlamp-egress-apiserver
+  namespace: headlamp
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: headlamp
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP

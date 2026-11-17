@@ -13,8 +13,13 @@ spec:
   target:
     name: postgres-credentials
     creationPolicy: Owner
+    template:
+      type: kubernetes.io/basic-auth
+      data:
+        username: postgres
+        password: "{{ .password }}"
   data:
-    - secretKey: POSTGRES_PASSWORD # <--- Bitnami leerá esta key
+    - secretKey: password # <--- CNPG lee username/password del Secret basic-auth
       remoteRef:
         key: secret/data/platform/databases/postgres # <--- Path en Vault (Tú lo defines)
         property: password # <--- Key dentro de Vault

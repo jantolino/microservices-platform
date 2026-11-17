@@ -1,0 +1,39 @@
+# Credencial basicAuth del dashboard de Traefik. La contraseña se genera una sola vez
+# (refreshInterval "0") y queda en el Secret traefik-dashboard-auth:
+# kubectl get secret traefik-dashboard-auth -n networking -o jsonpath='{.data.password}' | base64 -d
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: traefik-dashboard-password
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  length: 24
+  digits: 6
+  symbols: 0
+  noUpper: false
+  allowRepeat: true
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: traefik-dashboard-auth
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: "0"
+  target:
+    name: traefik-dashboard-auth
+    creationPolicy: Owner
+    template:
+      data:
+        users: '{{ htpasswd "admin" .password }}'
+        password: '{{ .password }}'
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: traefik-dashboard-password

@@ -7,7 +7,7 @@ global:
   edition: ce
 
   hosts:
-    domain: gitlab.desarrollo
+    domain: dev.lab
     https: false
 
   ingress:
@@ -16,16 +16,18 @@ global:
       enabled: false
 
   redis:
-    host: redis.event-management.svc.cluster.local
+    host: redis.data-services.svc.cluster.local
     port: 6379
     auth:
-      enabled: false
+      enabled: true
+      secret: gitlab-redis-auth
+      key: password
 
   # ============================================================
   # CONFIGURACIÓN DE BASE DE DATOS EXTERNA (la base de datos debe estar previamente creada)
   # ============================================================
   psql:
-    host: postgresql.devops-tools.svc.cluster.local
+    host: postgres-rw.data-services.svc.cluster.local
     port: 5432
     username: gitlab
     database: gitlabhq_production
@@ -39,10 +41,9 @@ global:
 
   metrics:
     enabled: true
+    # ServiceMonitor centralizado en config/gitlab/
     serviceMonitor:
-      enabled: true
-      labels:
-        release: prometheus
+      enabled: false
 
   appConfig:
     lfs:
@@ -61,6 +62,10 @@ nginx-ingress:
   enabled: false
 
 registry:
+  enabled: false
+
+# Sin MinIO: el PoC usa storage local (Gitaly) y no almacena objetos
+minio:
   enabled: false
 
 prometheus:
@@ -92,10 +97,10 @@ sidekiq:
   resources:
     requests:
       cpu: 100m
-      memory: 1Gi
+      memory: 512Mi
     limits:
       cpu: 500m
-      memory: 2Gi
+      memory: 1Gi
 
 gitlab:
   gitlab-exporter:

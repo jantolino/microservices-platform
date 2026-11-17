@@ -1,0 +1,22 @@
+# Salida de Traefik hacia Kibana (IngressRoute kibana-ui-route).
+# La entrada correspondiente está en k8s/platform/config/elk/elk-clients-network-policy.yaml.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: traefik-to-kibana
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: traefik
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: kibana
+      toPorts:
+        - ports:
+            - port: "5601"
+              protocol: TCP

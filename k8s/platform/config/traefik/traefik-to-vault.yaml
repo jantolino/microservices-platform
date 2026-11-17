@@ -1,0 +1,21 @@
+# Salida de Traefik hacia Vault (IngressRoute vault-ui-route).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: traefik-to-vault
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: traefik
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: secrets-manager
+            app.kubernetes.io/name: vault
+      toPorts:
+        - ports:
+            - port: "8200"
+              protocol: TCP

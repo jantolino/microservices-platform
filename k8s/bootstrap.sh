@@ -14,10 +14,25 @@ cd "$REPO_ROOT"
 FOUNDATION_PATH="k8s/bootstrap/00-foundation"
 REDIS_OP_VALUES="k8s/bootstrap/01-redis/redis-operator-values.yaml"
 REDIS_STANDALONE_VALUES="k8s/bootstrap/01-redis/redis-standalone-values.yaml"
+REDIS_NETPOL="k8s/bootstrap/01-redis/redis-network-policy.yaml"
 ARGOCD_VALUES="k8s/bootstrap/02-argocd/argocd-values.yaml"
+ARGOCD_NETPOL="k8s/bootstrap/02-argocd/argocd-network-policy.yaml"
+ROOT_APP="k8s/bootstrap/03-platform-orchestration/root-app-of-apps.yaml"
 
 NAMESPACE_DATA="data-services"
 NAMESPACE_ARGOCD="argocd"
+NAMESPACE_VAULT="secrets-manager"
+
+# Contraseña de Redis (se genera una sola vez; nunca se versiona)
+REDIS_SECRET_NAME="redis-auth"
+ARGOCD_REDIS_SECRET_NAME="argocd-redis-auth"
+
+# Vault: init/unseal/seed del auth (Fase 5)
+VAULT_POD="vault-0"
+VAULT_KEY_SHARES=5
+VAULT_KEY_THRESHOLD=3
+SECRETS_DIR="k8s/.secrets"
+VAULT_INIT_FILE="$SECRETS_DIR/vault-init.json"
 
 # Colores para mensajes
 RED='\033[0;31m'
@@ -71,6 +86,14 @@ validate_tools() {
         exit 1
     fi
     log_success "Cluster Kubernetes accesible: $(kubectl cluster-info | head -1)"
+
+    # Verificar Cilium (CNI requerido por las políticas zero-trust)
+    if ! kubectl get crd ciliumnetworkpolicies.cilium.io &> /dev/null; then
+        log_error "Cilium no está instalado (falta el CRD ciliumnetworkpolicies.cilium.io)."
+        log_info "En Minikube: minikube start --cni=cilium"
+        exit 1
+    fi
+    log_success "Cilium detectado."
 }
 
 # Función para verificar existencia de un namespace
@@ -123,6 +146,184 @@ wait_for_redis_ready() {
     log_success "Redis Standalone está listo."
 }
 
+# ============================================
+# Funciones de Vault (Fase 5)
+# ============================================
+vault_cmd() {
+    kubectl exec -n "$NAMESPACE_VAULT" "$VAULT_POD" -c vault -- "$@"
+}
+
+# Codigo de `vault status`: 0 = desellado, 2 = sellado, 1 = error/no disponible
+vault_status_code() {
+    local rc=0
+    vault_cmd vault status >/dev/null 2>&1 || rc=$?
+    echo "$rc"
+}
+
+wait_for_vault_pod() {
+    log_info "Esperando a que ArgoCD despliegue $VAULT_POD (puede tardar varios minutos)..."
+    local timeout=900
+    local elapsed=0
+    until [ "$(kubectl get pod "$VAULT_POD" -n "$NAMESPACE_VAULT" -o jsonpath='{.status.phase}' 2>/dev/null)" == "Running" ]; do
+        if [ $elapsed -ge $timeout ]; then
+            log_error "$VAULT_POD no llegó a Running en ${timeout}s."
+            kubectl get applications -n "$NAMESPACE_ARGOCD" 2>/dev/null || true
+            exit 1
+        fi
+        sleep 5
+        elapsed=$((elapsed + 5))
+    done
+
+    # El pod no queda Ready mientras esté sellado; esperamos a que la API responda.
+    elapsed=0
+    until [ "$(vault_status_code)" != "1" ]; do
+        if [ $elapsed -ge 300 ]; then
+            log_error "La API de Vault no respondió en 300s."
+            exit 1
+        fi
+        sleep 5
+        elapsed=$((elapsed + 5))
+    done
+    log_success "Vault responde."
+}
+
+vault_is_initialized() {
+    vault_cmd vault status -format=json 2>/dev/null | grep -q '"initialized": *true'
+}
+
+read_unseal_keys() {
+    sed -n '/"unseal_keys_b64"/,/\]/p' "$VAULT_INIT_FILE" | grep -o '"[^"]*"' | grep -v 'unseal_keys_b64' | tr -d '"'
+}
+
+read_root_token() {
+    grep -o '"root_token"[[:space:]]*:[[:space:]]*"[^"]*"' "$VAULT_INIT_FILE" | sed 's/.*"\([^"]*\)"$/\1/'
+}
+
+vault_init() {
+    mkdir -p "$SECRETS_DIR"
+    chmod 700 "$SECRETS_DIR" 2>/dev/null || true
+
+    # Un archivo previo pertenece a una instalación anterior: se conserva renombrado.
+    if [ -f "$VAULT_INIT_FILE" ]; then
+        local backup="$SECRETS_DIR/vault-init-$(date +%Y%m%d-%H%M%S).old.json"
+        mv "$VAULT_INIT_FILE" "$backup"
+        log_warning "Archivo de init previo movido a: $backup"
+    fi
+
+    log_info "Inicializando Vault (${VAULT_KEY_SHARES} claves, umbral ${VAULT_KEY_THRESHOLD})..."
+    (umask 077; vault_cmd vault operator init \
+        -key-shares="$VAULT_KEY_SHARES" \
+        -key-threshold="$VAULT_KEY_THRESHOLD" \
+        -format=json > "$VAULT_INIT_FILE.tmp")
+    mv "$VAULT_INIT_FILE.tmp" "$VAULT_INIT_FILE"
+    chmod 600 "$VAULT_INIT_FILE" 2>/dev/null || true
+    log_success "Vault inicializado. Claves y root token guardados en: $VAULT_INIT_FILE"
+}
+
+vault_unseal() {
+    if [ "$(vault_status_code)" == "0" ]; then
+        log_success "Vault ya está desellado."
+        return 0
+    fi
+
+    local keys=()
+    mapfile -t keys < <(read_unseal_keys)
+    if [ ${#keys[@]} -lt "$VAULT_KEY_THRESHOLD" ]; then
+        log_error "No se encontraron suficientes unseal keys en $VAULT_INIT_FILE."
+        exit 1
+    fi
+
+    log_info "Desellando Vault..."
+    local key
+    for key in "${keys[@]}"; do
+        [ "$(vault_status_code)" == "0" ] && break
+        vault_cmd vault operator unseal "$key" >/dev/null
+    done
+
+    if [ "$(vault_status_code)" != "0" ]; then
+        log_error "Vault sigue sellado. Verifica que $VAULT_INIT_FILE corresponda a esta instalación."
+        exit 1
+    fi
+    log_success "Vault desellado."
+}
+
+# Semilla mínima para que el VCO pueda autenticarse; el resto lo crea el VCO desde Git.
+vault_seed_auth() {
+    local token
+    token="$(read_root_token)"
+    if [ -z "$token" ]; then
+        log_error "No se encontró el root token en $VAULT_INIT_FILE."
+        exit 1
+    fi
+
+    log_info "Configurando auth/kubernetes y el rol vault-config-operator..."
+    kubectl exec -i -n "$NAMESPACE_VAULT" "$VAULT_POD" -c vault -- env VAULT_TOKEN="$token" sh -s >/dev/null <<'EOF'
+set -e
+vault auth list | grep -q '^kubernetes/' || vault auth enable kubernetes
+vault write auth/kubernetes/config kubernetes_host="https://$KUBERNETES_SERVICE_HOST:443"
+vault policy write vault-config-operator - <<'POLICY'
+path "sys/mounts/*"           { capabilities = ["create","read","update","delete","list"] }
+path "sys/mounts"             { capabilities = ["read","list"] }
+path "sys/policies/acl/*"     { capabilities = ["create","read","update","delete","list"] }
+path "auth/kubernetes/role/*" { capabilities = ["create","read","update","delete","list"] }
+POLICY
+vault write auth/kubernetes/role/vault-config-operator \
+  bound_service_account_names=default \
+  bound_service_account_namespaces=secrets-manager \
+  policies=vault-config-operator \
+  ttl=1h
+EOF
+    log_success "Auth de Vault configurado."
+}
+
+# El VCO arranca justo después del unseal y puede quedar en backoff si intentó
+# autenticarse antes de la semilla: se reinicia para que reconcilie de inmediato.
+restart_vault_config_operator() {
+    log_info "Esperando al Vault Config Operator..."
+    local timeout=600
+    local elapsed=0
+    until kubectl get deployment vault-config-operator -n "$NAMESPACE_VAULT" &>/dev/null; do
+        if [ $elapsed -ge $timeout ]; then
+            log_warning "El VCO no apareció en ${timeout}s; reconciliará al arrancar."
+            return 0
+        fi
+        sleep 5
+        elapsed=$((elapsed + 5))
+    done
+
+    kubectl rollout restart deployment vault-config-operator -n "$NAMESPACE_VAULT" >/dev/null
+    kubectl rollout status deployment vault-config-operator -n "$NAMESPACE_VAULT" --timeout=300s || {
+        log_warning "El VCO no completó el rollout; revísalo en ArgoCD."
+        return 0
+    }
+    log_success "Vault Config Operator reiniciado."
+}
+
+# Crea la contraseña de Redis si no existe y la replica en el namespace de ArgoCD.
+# Idempotente: si ya existe se reutiliza (regenerarla dejaría a Redis y ArgoCD desincronizados).
+ensure_redis_secrets() {
+    local password
+    if kubectl get secret "$REDIS_SECRET_NAME" -n "$NAMESPACE_DATA" &>/dev/null; then
+        log_info "Secret $REDIS_SECRET_NAME ya existe; se reutiliza."
+        password="$(kubectl get secret "$REDIS_SECRET_NAME" -n "$NAMESPACE_DATA" -o jsonpath='{.data.password}' | base64 -d)"
+    else
+        password="$(openssl rand -base64 32 | tr -d '/+=\n')"
+        kubectl create secret generic "$REDIS_SECRET_NAME" -n "$NAMESPACE_DATA" \
+            --from-literal=password="$password"
+        kubectl label secret "$REDIS_SECRET_NAME" -n "$NAMESPACE_DATA" part-of=microservices-platform --overwrite >/dev/null
+        log_success "Secret $REDIS_SECRET_NAME creado."
+    fi
+
+    if ! namespace_exists "$NAMESPACE_ARGOCD"; then
+        kubectl create namespace "$NAMESPACE_ARGOCD"
+    fi
+    kubectl create secret generic "$ARGOCD_REDIS_SECRET_NAME" -n "$NAMESPACE_ARGOCD" \
+        --from-literal=redis-password="$password" \
+        --dry-run=client -o yaml | kubectl apply -f - >/dev/null
+    kubectl label secret "$ARGOCD_REDIS_SECRET_NAME" -n "$NAMESPACE_ARGOCD" part-of=microservices-platform --overwrite >/dev/null
+    log_success "Secret $ARGOCD_REDIS_SECRET_NAME sincronizado en $NAMESPACE_ARGOCD."
+}
+
 # Llamar a la validación al inicio del script (justo después de las configuraciones iniciales)
 validate_tools
 
@@ -168,6 +369,13 @@ if [ ! -f "$ARGOCD_VALUES" ]; then
     exit 1
 fi
 
+for netpol in "$REDIS_NETPOL" "$ARGOCD_NETPOL"; do
+    if [ ! -f "$netpol" ]; then
+        log_error "No se encontró la política de red: $netpol"
+        exit 1
+    fi
+done
+
 # ============================================
 # Fase 1: Foundation (Kustomize)
 # ============================================
@@ -180,6 +388,12 @@ if ! namespace_exists "$NAMESPACE_DATA"; then
     log_error "El namespace $NAMESPACE_DATA no fue creado por Foundation. Verifica la configuración."
     exit 1
 fi
+
+# Políticas de red mínimas de Redis y ArgoCD antes de instalarlos (arrancan ya sellados)
+log_info "Aplicando políticas de red de arranque (Redis y ArgoCD)..."
+kubectl apply -f "$REDIS_NETPOL"
+kubectl apply -f "$ARGOCD_NETPOL"
+log_success "Políticas de red de arranque aplicadas."
 
 # ============================================
 # Fase 2: Redis Operator
@@ -208,6 +422,8 @@ wait_for_redis_operator
 # Fase 3: Redis Standalone
 # ============================================
 log_info "=== FASE 3: Instalando Redis Standalone ==="
+
+ensure_redis_secrets
 
 log_info "Ejecutando: helm upgrade --install redis ot-helm/redis --namespace $NAMESPACE_DATA -f $REDIS_STANDALONE_VALUES --wait"
 helm upgrade --install redis ot-helm/redis \
@@ -253,6 +469,30 @@ kubectl wait --for=condition=ready --timeout=180s -n "$NAMESPACE_ARGOCD" pod -l 
 }
 
 # ============================================
+# Fase 5: Plataforma GitOps + Vault
+# ============================================
+log_info "=== FASE 5: Aplicando App of Apps e inicializando Vault ==="
+
+kubectl apply -f "$ROOT_APP"
+log_success "App of Apps aplicada. ArgoCD desplegará los componentes por waves."
+
+wait_for_vault_pod
+
+if vault_is_initialized; then
+    log_info "Vault ya estaba inicializado; se usarán las claves de $VAULT_INIT_FILE."
+    if [ ! -f "$VAULT_INIT_FILE" ]; then
+        log_error "Vault está inicializado pero no existe $VAULT_INIT_FILE. Sin las claves no es posible desellarlo."
+        exit 1
+    fi
+else
+    vault_init
+fi
+
+vault_unseal
+vault_seed_auth
+restart_vault_config_operator
+
+# ============================================
 # Finalización
 # ============================================
 echo ""
@@ -281,9 +521,10 @@ echo "🌐 ACCESO A ARGOCD:"
 echo "   kubectl port-forward -n $NAMESPACE_ARGOCD svc/argocd-server 8080:80"
 echo "   Luego abre http://localhost:8080"
 echo ""
-echo "📁 PARA CONTINUAR CON GITOPS:"
-echo "   Aplica la App of Apps para desplegar el resto de componentes:"
-echo "   kubectl apply -f k8s/argocd/apps/app-of-apps.yaml"
+echo "🔑 VAULT:"
+echo "   Unseal keys y root token guardados en: $VAULT_INIT_FILE"
+echo "   Haz un resguardo de ese archivo fuera del proyecto (está excluido de Git)."
+echo "   Si Vault se reinicia y queda sellado, vuelve a ejecutar este script: es idempotente."
 echo ""
 
 log_success "¡Listo! La plataforma base está funcionando y ArgoCD está listo para gestionar el resto de la infraestructura."

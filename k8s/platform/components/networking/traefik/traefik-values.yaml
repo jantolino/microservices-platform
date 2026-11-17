@@ -5,13 +5,12 @@ commonLabels:
 # Configuración de la API y el Dashboard
 api:
   dashboard: true
-  insecure: true # Para acceso rápido en desarrollo
 
+# El chart no crea el IngressRoute del dashboard; lo hacemos en config/traefik/
+# con BasicAuth (traefik-dashboard-route.yaml + traefik-dashboard-auth.yaml)
 ingressRoute:
   dashboard:
-    enabled: true
-    matchRule: "Host(`traefik.desarrollo`)" # Tu dominio de desarrollo
-    entryPoints: ["web"]
+    enabled: false
 
 # Observabilidad
 logs:

@@ -1,0 +1,26 @@
+# Red mínima de arranque de Traefik. Requiere Cilium.
+# DNS lo cubre allow-dns de Foundation. La entrada de tráfico y los flujos hacia
+# cada backend se añaden en k8s/platform/config/traefik/.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: traefik-bootstrap
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: traefik
+  egress:
+    # Providers CRD / Gateway API
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP

@@ -1,0 +1,83 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: artifactory-database
+  namespace: devops-tools
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: 15m
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: artifactory-database
+    creationPolicy: Owner
+  data:
+    - secretKey: db-password
+      remoteRef:
+        key: secret/data/platform/databases/artifactory
+        property: password
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: artifactory-masterkey
+  namespace: devops-tools
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: 15m
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: artifactory-masterkey
+    creationPolicy: Owner
+  data:
+    - secretKey: master-key
+      remoteRef:
+        key: secret/data/platform/tools/artifactory
+        property: masterKey
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: artifactory-joinkey
+  namespace: devops-tools
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: 15m
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: artifactory-joinkey
+    creationPolicy: Owner
+  data:
+    - secretKey: join-key
+      remoteRef:
+        key: secret/data/platform/tools/artifactory
+        property: joinKey
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: artifactory-admin-credentials
+  namespace: devops-tools
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: 15m
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: artifactory-admin-credentials
+    creationPolicy: Owner
+  data:
+    - secretKey: admin-password
+      remoteRef:
+        key: secret/data/platform/tools/artifactory
+        property: adminPassword

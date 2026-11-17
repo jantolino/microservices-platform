@@ -1,0 +1,21 @@
+# Salida de Traefik hacia RabbitMQ Management UI (IngressRoute rabbitmq-ui-route).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: traefik-to-rabbitmq
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: traefik
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: data-services
+            app.kubernetes.io/name: rabbitmq
+      toPorts:
+        - ports:
+            - port: "15672"
+              protocol: TCP

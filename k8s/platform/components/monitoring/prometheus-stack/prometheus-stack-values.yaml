@@ -21,13 +21,17 @@ prometheus:
 # 2. Configuración de Grafana
 grafana:
   enabled: true
-  adminPassword: "admin" # Cambia esto por una contraseña segura
+  # Credenciales desde Secret generado por ESO (config/prometheus-stack/grafana-es.yaml)
+  admin:
+    existingSecret: grafana-admin-credentials
+    userKey: admin-user
+    passwordKey: admin-password
 
   # Persistencia para Grafana (evita perder dashboards creados manualmente)
   persistence:
     enabled: true
     type: pvc
-    storageClassName: "standard"
+    storageClassName: ""
     accessModes:
       - ReadWriteOnce
     size: 5Gi

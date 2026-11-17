@@ -145,13 +145,13 @@ kubectl exec -n secrets-manager vault-0 -- vault operator init
 
 # El comando anterior devuelve 5 Unseal Keys y un Root Token
 # Guardar estas claves de forma segura (por ejemplo, en un gestor de contraseñas).
-Unseal Key 1: SvomMiy8f6OLNXg0leXSM1x/V5Zswbkaq8oYlzS4Ywcg
-Unseal Key 2: qZHDODe+LxoTQB/1SKE7wnl6Ep6XeS4mOPOLO5TwmY9H
-Unseal Key 3: Knprfte5gypjFcrmiMUhSDaCbkbDcmJXfvqBFD/pGtNg
-Unseal Key 4: nomRxJdi/F2N8JT2d6WwI4Zm79tqWG3W+jM5mlzlVQFk
-Unseal Key 5: xQ8fsQjmKEnPWr/Tdx+5LwbPOhjkpAPCvu+LTJIbd9I1
+Unseal Key 1: <unseal-key-1>
+Unseal Key 2: <unseal-key-2>
+Unseal Key 3: <unseal-key-3>
+Unseal Key 4: <unseal-key-4>
+Unseal Key 5: <unseal-key-5>
 
-Initial Root Token: hvs.ALrYPxgoEbgLOYdU5qeYituJ
+Initial Root Token: <root-token>
 
 
 
@@ -175,17 +175,17 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: vault-ui-route
-  namespace: security  # Muy importante: debe coincidir con el namespace de Vault
+  namespace: secrets-manager  # Muy importante: debe coincidir con el namespace de Vault
   labels:
     part-of: microservices-platform
 spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`vault.desarrollo`)  # Tu dominio local
+    - match: Host(`vault.dev.lab`)  # Tu dominio local
       kind: Rule
       services:
-        - name: vault-ui          # El nombre del servicio que crea el Helm de Vault
+        - name: vault          # El nombre del servicio que crea el Helm de Vault
           port: 8200              # El puerto estándar de la UI de Vault
 ```
 

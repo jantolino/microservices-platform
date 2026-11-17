@@ -1,0 +1,21 @@
+# Consumidor: Redis Insight -> Redis (6379). Se suma a la política de arranque (bootstrap/01-redis).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: redis-from-insight
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app: redis
+      redis_setup_type: standalone
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: redis-insight
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP

@@ -1,13 +1,19 @@
 #!/bin/bash
 # bootstrap-uninstall.sh
 # Script para desinstalar los componentes instalados por bootstrap.sh
-# Ejecutar desde la raíz del repositorio: ./k8s/bootstrap/bootstrap-uninstall.sh
-# Sigue el orden correcto de desinstalación respetando dependencias:
-# ArgoCD -> depende de Redis Standalone
-# Redis Standalone -> depende de Redis Operator
-# Por lo tanto: 1. ArgoCD, 2. Redis Standalone, 3. Redis Operator
+# Ejecutar desde la raíz del repositorio: ./k8s/bootstrap-uninstall.sh
+# Orden de desinstalación (inverso a la instalación):
+# 1. Applications de ArgoCD en orden inverso de sync-wave (ArgoCD aún activo borra sus recursos)
+# 2. ArgoCD, Redis Standalone y Redis Operator (Helm)
+# 3. Webhooks e instancias de CRDs con finalizers
+# 4. Namespaces de Foundation
+# 5. Volúmenes persistentes y datos residuales
+# 6. CRDs, RBAC de clúster y StorageClasses
 
 set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$(pwd)")"
+cd "$REPO_ROOT"
 
 # Colores
 RED='\033[0;31m'
@@ -22,58 +28,170 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_step() { echo -e "${BLUE}[STEP]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 
-# Namespaces creados por Foundation (orden de eliminación: primero los que tienen componentes)
+# Namespaces creados por Foundation (00-foundation/kustomization.yaml)
 NAMESPACES=(
-    "argocd"           # Contiene ArgoCD
-    "data-services"    # Contiene Redis Operator y Redis Standalone
+    "argocd"
     "cert-manager"
+    "data-services"
     "devops-tools"
+    "headlamp"
+    "microservices"
     "monitoring"
     "networking"
     "repositories"
     "security"
-    "vault"
+    "secrets-manager"
 )
+
+# StorageClasses creadas por Foundation
+STORAGE_CLASSES=("local-default" "nfs")
+
+# Nombres de ClusterRoles, ClusterRoleBindings y Webhooks creados por bootstrap.sh y las apps de ArgoCD
+CLUSTER_PATTERN="argocd|cert-manager|external-secrets|externalsecret|secretstore|vault|redis"
+
+# Grupos de API de los CRDs instalados (ArgoCD, cert-manager, ESO, VCO, Redis Operator)
+CRD_GROUP_PATTERN="argoproj\.io$|cert-manager\.io$|external-secrets\.io$|redhatcop\.redhat\.io$|opstreelabs\.in$"
+
+ROOT_APP_NAME="platform-root"
+SECRETS_DIR="k8s/.secrets"
 
 # Funciones auxiliares
 namespace_exists() { kubectl get namespace "$1" &>/dev/null; }
-resource_exists() { kubectl get "$1" -n "$2" --ignore-not-found &>/dev/null; }
 
-# Eliminar finalizers de un recurso específico
-remove_finalizers() {
-    local resource_type=$1
-    local resource_name=$2
-    local namespace=$3
-
-    if kubectl get "$resource_type" "$resource_name" -n "$namespace" &>/dev/null; then
-        log_info "Eliminando finalizers de $resource_type/$resource_name en namespace $namespace"
-        kubectl patch "$resource_type" "$resource_name" -n "$namespace" \
-            -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
+# Quitar finalizers de un recurso ($3 vacío = recurso de clúster)
+strip_finalizers() {
+    local kind=$1
+    local name=$2
+    local ns=${3:-}
+    if [ -n "$ns" ]; then
+        kubectl patch "$kind" "$name" -n "$ns" --type=merge -p '{"metadata":{"finalizers":null}}' >/dev/null 2>&1 || true
+    else
+        kubectl patch "$kind" "$name" --type=merge -p '{"metadata":{"finalizers":null}}' >/dev/null 2>&1 || true
     fi
 }
 
-# Limpiar recursos huérfanos de Redis (CRDs, finalizers, etc.)
-cleanup_redis_orphans() {
-    log_step "Limpiando recursos huérfanos de Redis Operator..."
+list_platform_crds() {
+    kubectl get crd -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null | grep -E "$CRD_GROUP_PATTERN" || true
+}
 
-    # Eliminar finalizers de cualquier recurso Redis que haya quedado
-    for crd in $(kubectl get crd 2>/dev/null | grep -E "redis.*opstreelabs" | awk '{print $1}'); do
-        local resource_type=$(echo "$crd" | cut -d. -f1)
-        for resource in $(kubectl get "$resource_type" --all-namespaces -o name 2>/dev/null | head -1); do
-            if [ -n "$resource" ]; then
-                local ns=$(echo "$resource" | cut -d/ -f2)
-                local name=$(echo "$resource" | cut -d/ -f3)
-                remove_finalizers "$resource_type" "$name" "$ns"
-                kubectl delete "$resource_type" "$name" -n "$ns" --force --grace-period=0 2>/dev/null || true
+# Elimina todas las instancias de los CRDs de la plataforma quitando antes sus finalizers
+# (sus operadores ya no existen para procesarlos y bloquearían namespaces y CRDs).
+purge_custom_resources() {
+    log_step "Eliminando instancias residuales de CRDs de la plataforma..."
+    local crd item ns name
+    for crd in $(list_platform_crds); do
+        for item in $(kubectl get "$crd" -A -o jsonpath='{range .items[*]}{.metadata.namespace}{"/"}{.metadata.name}{"\n"}{end}' 2>/dev/null || true); do
+            ns="${item%%/*}"
+            name="${item#*/}"
+            strip_finalizers "$crd" "$name" "$ns"
+            if [ -n "$ns" ]; then
+                kubectl delete "$crd" "$name" -n "$ns" --ignore-not-found --wait=false >/dev/null 2>&1 || true
+            else
+                kubectl delete "$crd" "$name" --ignore-not-found --wait=false >/dev/null 2>&1 || true
+            fi
+            log_info "$crd $item eliminado"
+        done
+    done
+}
+
+# Elimina las Applications mientras ArgoCD sigue activo para que borre sus recursos gestionados
+delete_argocd_applications() {
+    if ! namespace_exists "argocd" || ! kubectl get crd applications.argoproj.io &>/dev/null; then
+        log_warning "ArgoCD no está presente; se omiten las Applications."
+        return 0
+    fi
+
+    # Root App sin cascada: evita que vuelva a crear las apps hijas mientras se eliminan
+    if kubectl get application "$ROOT_APP_NAME" -n argocd &>/dev/null; then
+        log_info "Eliminando $ROOT_APP_NAME (sin cascada)..."
+        strip_finalizers application "$ROOT_APP_NAME" argocd
+        kubectl delete application "$ROOT_APP_NAME" -n argocd --timeout=60s >/dev/null 2>&1 || true
+    fi
+
+    # Apps hijas en orden inverso de sync-wave (cluster-secret-store -> ... -> cert-manager)
+    local app
+    for app in $(kubectl get applications -n argocd \
+            -o jsonpath='{range .items[*]}{.metadata.annotations.argocd\.argoproj\.io/sync-wave}{"|"}{.metadata.name}{"\n"}{end}' 2>/dev/null \
+            | awk -F'|' '{ print ($1 == "" ? 0 : $1) "|" $2 }' \
+            | sort -t'|' -k1,1 -n -r \
+            | cut -d'|' -f2 || true); do
+        log_info "Eliminando Application $app y sus recursos..."
+        if kubectl delete application "$app" -n argocd --timeout=180s >/dev/null 2>&1; then
+            log_success "Application $app eliminada."
+        else
+            log_warning "Application $app no terminó en 180s; se fuerza y sus residuos se limpian después."
+            strip_finalizers application "$app" argocd
+            kubectl delete application "$app" -n argocd --ignore-not-found --wait=false >/dev/null 2>&1 || true
+        fi
+    done
+}
+
+# Elimina recursos de clúster cuyo nombre coincide con CLUSTER_PATTERN
+delete_cluster_resources_by_name() {
+    local kind=$1
+    local item
+    for item in $(kubectl get "$kind" -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null | grep -E "$CLUSTER_PATTERN" || true); do
+        if kubectl delete "$kind" "$item" --ignore-not-found >/dev/null 2>&1; then
+            log_info "$kind $item eliminado"
+        else
+            log_warning "No se pudo eliminar $kind $item"
+        fi
+    done
+}
+
+delete_platform_crds() {
+    local crd
+    for crd in $(list_platform_crds); do
+        if kubectl delete crd "$crd" --ignore-not-found --timeout=60s >/dev/null 2>&1; then
+            log_info "CRD $crd eliminado"
+        else
+            log_warning "CRD $crd atascado; quitando finalizers..."
+            strip_finalizers crd "$crd"
+            kubectl delete crd "$crd" --ignore-not-found --wait=false >/dev/null 2>&1 || true
+        fi
+    done
+}
+
+# Elimina PVs que pertenecían a los namespaces de la plataforma y sus datos en Minikube
+delete_platform_volumes() {
+    local item name claim_ns ns elapsed=0
+
+    # Dar tiempo al provisioner para reclamar (reclaimPolicy: Delete) y borrar los datos del host
+    while kubectl get pv -o jsonpath='{range .items[*]}{.spec.claimRef.namespace}{"\n"}{end}' 2>/dev/null \
+            | grep -qxE "$(IFS='|'; echo "${NAMESPACES[*]}")"; do
+        if [ $elapsed -ge 60 ]; then
+            break
+        fi
+        sleep 5
+        elapsed=$((elapsed + 5))
+    done
+
+    for item in $(kubectl get pv -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.spec.claimRef.namespace}{"\n"}{end}' 2>/dev/null || true); do
+        name="${item%%|*}"
+        claim_ns="${item#*|}"
+        for ns in "${NAMESPACES[@]}"; do
+            if [ "$claim_ns" == "$ns" ]; then
+                strip_finalizers pv "$name"
+                kubectl delete pv "$name" --ignore-not-found --wait=false >/dev/null 2>&1 || true
+                log_info "PV $name ($claim_ns) eliminado"
             fi
         done
     done
+
+    # Datos del storage-provisioner de Minikube: si sobreviven, Vault arrancaría
+    # ya inicializado con claves de la instalación anterior.
+    if command -v minikube &>/dev/null && [ "$(kubectl config current-context 2>/dev/null)" == "minikube" ]; then
+        log_info "Eliminando datos residuales de /tmp/hostpath-provisioner en Minikube..."
+        for ns in "${NAMESPACES[@]}"; do
+            minikube ssh -- "sudo rm -rf /tmp/hostpath-provisioner/$ns" >/dev/null 2>&1 || true
+        done
+    fi
 }
 
 # Esperar a que un namespace esté completamente limpio
 wait_for_namespace_deletion() {
     local ns=$1
-    local timeout=120
+    local timeout=${2:-120}
     local elapsed=0
 
     while kubectl get namespace "$ns" &>/dev/null; do
@@ -87,65 +205,13 @@ wait_for_namespace_deletion() {
     return 0
 }
 
-# Forzar eliminación de namespace atascado
+# Forzar eliminación de namespace atascado: vacía spec.finalizers vía la API /finalize (sin jq)
 force_delete_namespace() {
     local ns=$1
     log_warning "Forzando eliminación del namespace $ns..."
-
-    # Eliminar finalizers del namespace (sin jq)
-    kubectl patch namespace "$ns" -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
-
-    # Forzar eliminación
-    kubectl delete namespace "$ns" --force --grace-period=0 2>/dev/null || true
-
-    # Si aún existe, usar el método del proxy
-    if kubectl get namespace "$ns" &>/dev/null; then
-        log_info "Usando proxy para eliminar finalizers..."
-        kubectl proxy &
-        PROXY_PID=$!
-        sleep 2
-        curl -k -H "Content-Type: application/json" -X PUT \
-            "http://localhost:8001/api/v1/namespaces/$ns/finalize" \
-            -d '{"metadata":{"finalizers":[]}}' 2>/dev/null || true
-        kill $PROXY_PID 2>/dev/null || true
-    fi
-}
-
-cleanup_cluster_resources() {
-    local pattern=$1      # patrón para grep (ej. "cert-manager|argocd|redis")
-    local description=$2
-
-    log_step "Limpiando recursos de clúster para: $description"
-
-    # ClusterRoles
-    for cr in $(kubectl get clusterrole --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
-        kubectl delete clusterrole "$cr" 2>/dev/null && log_info "ClusterRole $cr eliminado" || log_warning "No se pudo eliminar ClusterRole $cr"
-    done
-
-    # ClusterRoleBindings
-    for crb in $(kubectl get clusterrolebinding --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
-        kubectl delete clusterrolebinding "$crb" 2>/dev/null && log_info "ClusterRoleBinding $crb eliminado" || log_warning "No se pudo eliminar ClusterRoleBinding $crb"
-    done
-
-    # ValidatingWebhookConfigurations
-    for vwc in $(kubectl get validatingwebhookconfiguration --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
-        kubectl delete validatingwebhookconfiguration "$vwc" 2>/dev/null && log_info "ValidatingWebhook $vwc eliminado" || true
-    done
-
-    # MutatingWebhookConfigurations
-    for mwc in $(kubectl get mutatingwebhookconfiguration --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
-        kubectl delete mutatingwebhookconfiguration "$mwc" 2>/dev/null && log_info "MutatingWebhook $mwc eliminado" || true
-    done
-
-    # CRDs
-    for crd in $(kubectl get crd --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
-        kubectl delete crd "$crd" 2>/dev/null && log_info "CRD $crd eliminado" || log_warning "No se pudo eliminar CRD $crd"
-    done
-
-    # PodSecurityPolicies (si existen, aunque obsoletas)
-    for psp in $(kubectl get psp --no-headers 2>/dev/null | grep -E "$pattern" | awk '{print $1}'); do
-        kubectl delete psp "$psp" 2>/dev/null && log_info "PSP $psp eliminado" || true
-    done
+    kubectl get namespace "$ns" -o json 2>/dev/null \
+        | sed 's/"kubernetes"//' \
+        | kubectl replace --raw "/api/v1/namespaces/$ns/finalize" -f - >/dev/null 2>&1 || true
 }
 
 # ============================================
@@ -166,11 +232,17 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 # ============================================
-# FASE 1: Desinstalar componentes con Helm (orden respetando dependencias)
+# FASE 1: Applications de ArgoCD (ArgoCD aún activo elimina lo que gestiona)
 # ============================================
-log_step "FASE 1: Desinstalando componentes con Helm (orden correcto)..."
+log_step "FASE 1: Eliminando Applications de ArgoCD en orden inverso de sync-wave..."
+delete_argocd_applications
 
-# 1.1 ArgoCD (depende de Redis, pero ArgoCD se desinstala primero porque no afecta a Redis)
+# ============================================
+# FASE 2: Componentes instalados con Helm por bootstrap.sh
+# ============================================
+log_step "FASE 2: Desinstalando componentes con Helm (orden correcto)..."
+
+# 2.1 ArgoCD (depende de Redis, pero ArgoCD se desinstala primero porque no afecta a Redis)
 if namespace_exists "argocd"; then
     log_info "Desinstalando ArgoCD..."
     helm uninstall argocd -n argocd --wait 2>/dev/null && log_success "ArgoCD desinstalado." || log_warning "ArgoCD no estaba instalado"
@@ -178,7 +250,7 @@ else
     log_warning "Namespace argocd no existe, omitiendo ArgoCD."
 fi
 
-# 1.2 Redis Standalone (depende del operador)
+# 2.2 Redis Standalone (depende del operador)
 if namespace_exists "data-services"; then
     if helm list -n data-services | grep -q "^redis "; then
         log_info "Desinstalando Redis Standalone..."
@@ -190,7 +262,7 @@ else
     log_warning "Namespace data-services no existe, omitiendo Redis."
 fi
 
-# 1.3 Redis Operator (debe desinstalarse después de Redis Standalone)
+# 2.3 Redis Operator (debe desinstalarse después de Redis Standalone)
 if namespace_exists "data-services"; then
     if helm list -n data-services | grep -q "^redis-operator"; then
         log_info "Desinstalando Redis Operator..."
@@ -201,141 +273,95 @@ if namespace_exists "data-services"; then
 fi
 
 # ============================================
-# FASE 2: Esperar a que los recursos se terminen de eliminar
+# FASE 3: Webhooks e instancias de CRDs
 # ============================================
-log_step "FASE 2: Verificando que los recursos se hayan eliminado correctamente..."
-sleep 5
+log_step "FASE 3: Eliminando webhooks e instancias de CRDs..."
 
-# ============================================
-# FASE 3: Limpiar residuos a nivel de clúster (CRDs, finalizers, etc.)
-# ============================================
-log_step "FASE 3: Limpiando residuos a nivel de clúster..."
-
-# 3.1 Limpiar recursos huérfanos de Redis
-cleanup_redis_orphans
-
-# 3.2 Eliminar CRDs de Redis (preguntar)
-read -p "¿Eliminar también los CRDs de Redis Operator? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    for crd in $(kubectl get crd 2>/dev/null | grep -E "redis.*opstreelabs" | awk '{print $1}'); do
-        kubectl delete crd "$crd" 2>/dev/null && log_info "CRD $crd eliminado." || log_warning "No se pudo eliminar $crd"
-    done
-else
-    log_info "CRDs de Redis conservados."
-fi
-
-# 3.3 Eliminar ClusterRoles y ClusterRoleBindings de ArgoCD
-log_info "Eliminando recursos de clúster de ArgoCD..."
-for role in argocd-application-controller argocd-server argocd-repo-server; do
-    kubectl delete clusterrole "$role" 2>/dev/null && log_info "ClusterRole $role eliminado." || true
-    kubectl delete clusterrolebinding "$role" 2>/dev/null && log_info "ClusterRoleBinding $role eliminado." || true
-done
+# Webhooks huérfanos apuntan a servicios inexistentes y bloquean la creación y el borrado de recursos
+delete_cluster_resources_by_name validatingwebhookconfiguration
+delete_cluster_resources_by_name mutatingwebhookconfiguration
+purge_custom_resources
 
 # ============================================
-# FASE 4: Eliminar namespaces (orden: argocd, data-services, luego el resto)
+# FASE 4: Eliminar namespaces de Foundation
 # ============================================
 log_step "FASE 4: Eliminando namespaces..."
 
-# NUEVO: Limpiar aplicaciones de ArgoCD antes de eliminar el namespace
-if namespace_exists "argocd"; then
-    log_info "Eliminando todas las aplicaciones dentro del namespace argocd..."
-
-    # Eliminar todas las aplicaciones gestionadas por ArgoCD
-    kubectl delete applications --all -n argocd --wait=true 2>/dev/null || true
-
-    # Eliminar finalizers de aplicaciones que pudieran quedar
-    for app in $(kubectl get applications -n argocd -o name 2>/dev/null); do
-        kubectl patch "$app" -n argocd -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
-        kubectl delete "$app" -n argocd --force --grace-period=0 2>/dev/null || true
-    done
-
-    log_success "Aplicaciones de ArgoCD eliminadas."
-fi
-
-# Primero los namespaces con componentes
-for ns in "argocd" "data-services"; do
+for ns in "${NAMESPACES[@]}"; do
     if namespace_exists "$ns"; then
         log_info "Eliminando namespace: $ns"
-        kubectl delete namespace "$ns" --timeout=120s --wait=true 2>/dev/null || {
-            log_warning "Timeout o error al eliminar $ns. Verificando estado..."
-            if kubectl get namespace "$ns" -o json | grep -q "finalizers"; then
-                force_delete_namespace "$ns"
-            fi
-        }
-        wait_for_namespace_deletion "$ns" || true
+        kubectl delete namespace "$ns" --wait=false >/dev/null 2>&1 || true
     else
         log_warning "Namespace $ns no existe, omitiendo."
     fi
 done
 
-# Luego el resto de namespaces
 for ns in "${NAMESPACES[@]}"; do
-    if [[ "$ns" == "argocd" || "$ns" == "data-services" ]]; then
-        continue
-    fi
-    if namespace_exists "$ns"; then
-        log_info "Eliminando namespace: $ns"
-        kubectl delete namespace "$ns" --timeout=90s --wait=true 2>/dev/null || {
-            log_warning "Timeout al eliminar $ns. Continuando..."
-        }
-    else
-        log_warning "Namespace $ns no existe, omitiendo."
+    if namespace_exists "$ns" && ! wait_for_namespace_deletion "$ns" 180; then
+        log_error "Namespace $ns atascado en Terminating. Limpiando residuos y forzando..."
+        purge_custom_resources
+        force_delete_namespace "$ns"
+        wait_for_namespace_deletion "$ns" 30 || log_error "Namespace $ns sigue presente; revísalo con: kubectl get namespace $ns -o yaml"
     fi
 done
 
-# Esperar a que todos los namespaces se hayan eliminado
-sleep 5
-
-# Verificar namespaces atascados
-for ns in "${NAMESPACES[@]}"; do
-    if namespace_exists "$ns"; then
-        status=$(kubectl get namespace "$ns" -o jsonpath='{.status.phase}')
-        if [ "$status" == "Terminating" ]; then
-            log_error "Namespace $ns atascado en estado Terminating. Forzando eliminación..."
-            force_delete_namespace "$ns"
-        fi
-    fi
-done
-
-# Llamar esta función después de haber eliminado los namespaces
-cleanup_cluster_resources "cert-manager|argocd|redis|opstreelabs" "componentes de la plataforma"
+# ============================================
+# FASE 5: Volúmenes persistentes y datos residuales
+# ============================================
+log_step "FASE 5: Eliminando volúmenes persistentes de la plataforma..."
+delete_platform_volumes
 
 # ============================================
-# FASE 5: StorageClasses (opcional - preguntar)
+# FASE 6: CRDs, RBAC de clúster y StorageClasses
 # ============================================
-log_step "FASE 5: Limpieza de StorageClasses..."
-read -p "¿Eliminar los StorageClasses 'local-default' y 'nfs' creados por Foundation? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    for sc in local-default nfs; do
-        if kubectl get storageclass "$sc" &>/dev/null; then
-            kubectl delete storageclass "$sc" 2>/dev/null && log_info "StorageClass $sc eliminado." || log_warning "No se pudo eliminar $sc"
+log_step "FASE 6: Eliminando CRDs, RBAC de clúster y StorageClasses..."
+
+purge_custom_resources
+delete_platform_crds
+delete_cluster_resources_by_name clusterrolebinding
+delete_cluster_resources_by_name clusterrole
+delete_cluster_resources_by_name validatingwebhookconfiguration
+delete_cluster_resources_by_name mutatingwebhookconfiguration
+
+for sc in "${STORAGE_CLASSES[@]}"; do
+    if kubectl get storageclass "$sc" &>/dev/null; then
+        if kubectl delete storageclass "$sc" >/dev/null 2>&1; then
+            log_info "StorageClass $sc eliminado."
         else
-            log_warning "StorageClass $sc no encontrado."
+            log_warning "No se pudo eliminar StorageClass $sc"
         fi
-    done
-else
-    log_info "StorageClasses conservados."
-fi
+    fi
+done
 
 # ============================================
-# FASE 6: Verificación final
+# FASE 7: Verificación final
 # ============================================
-log_step "FASE 6: Verificación final..."
+log_step "FASE 7: Verificación final..."
+
+NS_REGEX="$(IFS='|'; echo "${NAMESPACES[*]}")"
 
 echo ""
 log_info "=== NAMESPACES RESIDUALES ==="
-kubectl get namespaces | grep -E "$(IFS=\|; echo "${NAMESPACES[*]}")" || echo "   No se encontraron namespaces residuales."
+kubectl get namespaces --no-headers 2>/dev/null | grep -E "^($NS_REGEX)[[:space:]]" || echo "   Ninguno."
 
 echo ""
 log_info "=== CRDs RESIDUALES ==="
-kubectl get crd | grep -E "(redis|argocd)" || echo "   No se encontraron CRDs residuales."
+list_platform_crds | grep . || echo "   Ninguno."
 
 echo ""
-log_info "=== PVCs RESIDUALES ==="
-kubectl get pvc -A | grep -E "(data-services|argocd)" || echo "   No se encontraron PVCs residuales."
+log_info "=== RBAC Y WEBHOOKS RESIDUALES ==="
+kubectl get clusterrole,clusterrolebinding,validatingwebhookconfiguration,mutatingwebhookconfiguration -o name 2>/dev/null \
+    | grep -E "$CLUSTER_PATTERN" || echo "   Ninguno."
+
+echo ""
+log_info "=== PVs RESIDUALES ==="
+kubectl get pv -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.claimRef.namespace}{"\n"}{end}' 2>/dev/null \
+    | grep -E "[[:space:]]($NS_REGEX)$" || echo "   Ninguno."
 
 echo ""
 log_success "Desinstalación completada."
-log_warning "Si algún PV quedó huérfano, revísalo con: kubectl get pv"
+
+if ls "$SECRETS_DIR"/vault-init*.json &>/dev/null; then
+    log_warning "Las claves de Vault en $SECRETS_DIR pertenecen a la instalación eliminada y ya no sirven."
+    log_warning "bootstrap.sh las conservará renombradas (.old.json) al reinicializar Vault; bórralas cuando ya no las necesites."
+fi

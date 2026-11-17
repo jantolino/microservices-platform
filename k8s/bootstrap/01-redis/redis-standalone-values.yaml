@@ -18,9 +18,10 @@ redisStandalone:
     storageSize: 3Gi
 
 
-  # Desactivar autenticación (opcional, para simplificar)
+  # Secret `redis-auth` generado por bootstrap.sh (nunca en Git); luego se publica en Vault (config/redis)
   redisSecret:
-    secretName: ""
+    secretName: redis-auth
+    secretKey: password
 
 externalConfig:
   enabled: true

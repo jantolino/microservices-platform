@@ -1,0 +1,24 @@
+# Operador CloudNativePG (chart cloudnative-pg). Valores base: charts/cloudnative-pg/values.yaml
+# Se instala en data-services; gestiona el Cluster "postgres" definido en postgresql-values.yaml.
+fullnameOverride: cnpg
+
+replicaCount: 1
+
+crds:
+  create: true
+
+config:
+  clusterWide: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 100Mi
+  limits:
+    cpu: 100m
+    memory: 200Mi
+
+monitoring:
+  podMonitorEnabled: true
+  podMonitorAdditionalLabels:
+    release: prometheus

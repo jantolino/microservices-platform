@@ -1,0 +1,38 @@
+# Credencial basicAuth de Redis Insight. La contraseña se genera una sola vez (refreshInterval "0")
+# y queda en el Secret redis-insight-auth: kubectl get secret redis-insight-auth -n data-services -o jsonpath='{.data.password}' | base64 -d
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: redis-insight-password
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  length: 24
+  digits: 6
+  symbols: 0
+  noUpper: false
+  allowRepeat: true
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: redis-insight-auth
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: "0"
+  target:
+    name: redis-insight-auth
+    creationPolicy: Owner
+    template:
+      data:
+        users: '{{ htpasswd "admin" .password }}'
+        password: '{{ .password }}'
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: redis-insight-password

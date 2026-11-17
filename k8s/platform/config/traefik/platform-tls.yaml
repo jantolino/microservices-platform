@@ -1,0 +1,30 @@
+# Certificado wildcard *.dev.lab firmado por la CA de la plataforma + TLSStore default de Traefik
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: platform-tls
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  secretName: platform-tls
+  duration: 8760h # 1 año
+  renewBefore: 720h
+  dnsNames:
+    - dev.lab
+    - "*.dev.lab"
+  issuerRef:
+    name: platform-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  defaultCertificate:
+    secretName: platform-tls

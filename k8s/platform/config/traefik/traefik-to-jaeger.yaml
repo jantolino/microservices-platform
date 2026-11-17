@@ -1,0 +1,22 @@
+# Salida de Traefik hacia la UI de Jaeger (IngressRoute jaeger-ui-route).
+# La entrada correspondiente está en k8s/platform/config/jaeger/jaeger-network-policy.yaml.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: traefik-to-jaeger
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: traefik
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: jaeger
+      toPorts:
+        - ports:
+            - port: "16686"
+              protocol: TCP

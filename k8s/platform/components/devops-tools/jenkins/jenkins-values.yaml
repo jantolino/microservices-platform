@@ -28,15 +28,16 @@ controller:
       memory: "2Gi"
 
   # Opciones de Java
-  javaOpts: "-Xms512m -Xmx2048m"
+  javaOpts: "-Xms512m -Xmx1024m"
 
-  # Credenciales de administrador (cambia la contraseña)
+  # Credenciales de administrador desde Secret generado por ESO (config/jenkins/jenkins-es.yaml)
   admin:
-    user: "admin"
-    password: "admin123"   # ← Cámbiala por una segura
+    existingSecret: jenkins-admin-credentials
+    userKey: jenkins-admin-user
+    passwordKey: jenkins-admin-password
 
   # URL pública de Jenkins (usada en la interfaz)
-  jenkinsUrl: "http://jenkins.desarrollo"
+  jenkinsUrl: "http://jenkins.dev.lab"
   jenkinsAdminEmail: "admin@microservices-platform.local"
 
   # Desactivamos la creación automática del Ingress (lo haremos manualmente)
@@ -106,8 +107,8 @@ controller:
 # Persistencia
 persistence:
   enabled: true
-  size: "10Gi"
-  storageClass: "standard"
+  size: "5Gi"
+  storageClass: ""
 
 # Configuración del sidecar (recarga de configuración)
 sidecar:
@@ -146,11 +147,8 @@ serviceAccount:
 networkPolicy:
   enabled: false
 
-# Integración con Prometheus
+# Integración con Prometheus (ServiceMonitor centralizado en config/jenkins/)
 prometheus:
   enabled: true
   serviceMonitor:
-    enabled: true
-    labels:
-      release: prometheus
-    interval: 30s
+    enabled: false

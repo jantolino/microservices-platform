@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: headlamp-zero-trust
+  namespace: headlamp
+  labels:
+    part-of: microservices-platform
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: headlamp
+  policyTypes:
+    - Ingress
+  ingress:
+    # Traefik: UI. El Service expone 80; el contenedor escucha en 4466
+    # (la política aplica al puerto del pod). Validar en cluster.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: networking
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - port: 4466

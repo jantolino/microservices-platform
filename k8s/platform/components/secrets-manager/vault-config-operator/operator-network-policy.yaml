@@ -1,54 +1,54 @@
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
 metadata:
   name: vault-config-operator-network-policy
   namespace: secrets-manager
   labels:
     part-of: microservices-platform
 spec:
-  podSelector:
+  endpointSelector:
     matchLabels:
       app.kubernetes.io/name: vault-config-operator
-  policyTypes:
-    - Ingress # <--- AGREGADO
-    - Egress
   ingress:
-    # 1. Permitir a Kubelet hacer los Health Checks (puerto 8081)
-    - from:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-      ports:
-        - port: 8081
-          protocol: TCP
-    # 2. Permitir a la API de Kubernetes llamar a los Webhooks (puerto 9443)
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system # La API suele estar aquí o desde los nodos
-      ports:
-        - port: 9443
-          protocol: TCP
+    # 1. Kubelet: Health Checks (puerto 8081)
+    # 2. API server: llamadas a los Webhooks (puerto 9443)
+    - fromEntities:
+        - host
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+            - port: "9443"
+              protocol: TCP
   egress:
-    # ... (Mantén todo tu bloque de Egress exactamente como lo tienes)
-    - to:
-        - namespaceSelector: {}
-      ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: vault
-      ports:
-        - protocol: TCP
-          port: 8200
-    - to:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-      ports:
-        - protocol: TCP
-          port: 443
-        - protocol: TCP
-          port: 6443
+    # Vault (configuración declarativa de la plataforma)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: vault
+      toPorts:
+        - ports:
+            - port: "8200"
+              protocol: TCP
+    # API server de Kubernetes (admission webhooks, watches)
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+    # Resolución DNS (servicio vault en el mismo namespace)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP

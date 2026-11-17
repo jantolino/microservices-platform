@@ -1,11 +1,14 @@
 # Personalizado para tu entorno de desarrollo con base de datos externa
+# Estructura del chart artifactory-oss: subchart "artifactory" bajo la key "artifactory"
 
-# Agrega la etiqueta personalizada a nivel global
-commonLabels:
-  part-of: microservices-platform
-
+# Nombre estable de recursos (Service/Deployment "artifactory")
+fullnameOverride: artifactory
 
 artifactory:
+
+  # Etiqueta común (en este chart cuelga del subchart, no de la raíz)
+  commonLabels:
+    part-of: microservices-platform
 
   artifactory:
 
@@ -17,9 +20,20 @@ artifactory:
       limits:
         cpu: "500m"
         memory: "3Gi"
-      javaOpts:
-        xms: "1g"
-        xmx: "2g"
+
+    # Opciones de Java (hermano de resources, no anidado)
+    javaOpts:
+      xms: "1g"
+      xmx: "2g"
+
+    # Claves de cifrado desde Secrets generados por ESO (config/artifactory/artifactory-es.yaml)
+    masterKeySecretName: artifactory-masterkey
+    joinKeySecretName: artifactory-joinkey
+
+    # Usuario admin desde Secret generado por ESO (en vez del default "password")
+    admin:
+      secret: artifactory-admin-credentials
+      dataKey: admin-password
 
   # Configuración de la base de datos PostgreSQL externa
   postgresql:
@@ -28,9 +42,13 @@ artifactory:
   database:
     type: postgresql
     driver: org.postgresql.Driver
-    url: jdbc:postgresql://postgresql.devops-tools.svc.cluster.local:5432/artifactory
+    url: jdbc:postgresql://postgres-rw.data-services.svc.cluster.local:5432/artifactory
     user: artifactory
-    password: "artifactory456"
+    # Contraseña desde Vault: secret/data/platform/databases/artifactory (via ESO)
+    secrets:
+      password:
+        name: artifactory-database
+        key: db-password
 
   # Desactivar la instalación automática de Nginx (usaremos Traefik)
   nginx:

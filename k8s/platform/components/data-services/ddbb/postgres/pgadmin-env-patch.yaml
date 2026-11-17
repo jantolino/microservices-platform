@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pgadmin4-v1-62-0
+  name: pgadmin
   labels:
     part-of: microservices-platform
 spec:

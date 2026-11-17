@@ -3,6 +3,11 @@
 [![Helm](https://img.shields.io/badge/Helm-3.18.3-blue)](https://helm.sh/)
 [![License](https://img.shields.io/badge/License-MIT-green)](https://choosealicense.com/licenses/mit/)
 
+
+https://k0sproject.io/
+https://k3s.io/
+https://canonical.com/microk8s
+
 # Infraestructura Kubernetes para Arquitectura de Microservicios
 
 Documentación completa del clúster Kubernetes desplegado en entorno local (WSL2/Ubuntu con Minikube) que alberga una plataforma DevOps completa: servicios de datos, observabilidad, seguridad, CI/CD e ingreso.
@@ -101,8 +106,8 @@ graph TD
 ### 🔧 Configuración inicial de Minikube
 
 ```bash
-minikube start --cpus=12 --memory=32768 --disk-size=100g --driver=docker
-minikube start --cpus=8 --memory=20480 --disk-size=100g --driver=docker
+minikube start --cpus=12 --memory=32768 --disk-size=100g --driver=docker --cni=cilium
+minikube start --cpus=8 --memory=20480 --disk-size=100g --driver=docker --cni=cilium
 minikube addons enable metrics-server
 minikube addons enable storage-provisioner
 ```
@@ -218,24 +223,24 @@ El orden respeta las dependencias entre componentes (base de datos, Redis, Ingre
 Para acceder a los servicios a través de Traefik, añade la IP de Minikube al archivo /etc/hosts:
 
 ```bash
-echo "$(minikube ip) gitlab.desarrollo jenkins.desarrollo artifactory.desarrollo argocd.desarrollo sonarqube.desarrollo traefik.desarrollo grafana.desarrollo prometheus.desarrollo kibana.desarrollo jaeger.desarrollo vault.desarrollo" | sudo tee -a /etc/hosts
+echo "$(minikube ip) gitlab.dev.lab jenkins.dev.lab artifactory.dev.lab argocd.dev.lab sonarqube.dev.lab traefik.dev.lab grafana.dev.lab prometheus.dev.lab kibana.dev.lab jaeger.dev.lab vault.dev.lab pgadmin.dev.lab rabbitmq.dev.lab redis-insight.dev.lab headlamp.dev.lab" | sudo tee -a /etc/hosts
 ```
 
 ### 6.2 Tabla de servicios expuestos
 
 | Servicio | URL | Método de acceso |
 |----------|-----|----------------|
-| GitLab | http://gitlab.desarrollo | Ingress (Traefik) |
-| Jenkins | http://jenkins.desarrollo | Ingress (Traefik) |
-| JFrog Artifactory | http://artifactory.desarrollo | Ingress (Traefik) |
-| ArgoCD | http://argocd.desarrollo | Ingress (Traefik) |
-| SonarQube | http://sonarqube.desarrollo | Ingress (Traefik) |
-| Grafana | http://grafana.desarrollo | Ingress (Traefik) |
-| Prometheus | http://prometheus.desarrollo | Ingress (Traefik) |
-| Kibana | http://kibana.desarrollo | Ingress (Traefik) |
-| Jaeger | http://jaeger.desarrollo | Ingress (Traefik) |
-| Vault | http://vault.desarrollo | Ingress (Traefik) |
-| Traefik Dashboard | http://traefik.desarrollo/dashboard/ | Ingress (Traefik) con BasicAuth |
+| GitLab | http://gitlab.dev.lab | Ingress (Traefik) |
+| Jenkins | http://jenkins.dev.lab | Ingress (Traefik) |
+| JFrog Artifactory | http://artifactory.dev.lab | Ingress (Traefik) |
+| ArgoCD | http://argocd.dev.lab | Ingress (Traefik) |
+| SonarQube | http://sonarqube.dev.lab | Ingress (Traefik) |
+| Grafana | http://grafana.dev.lab | Ingress (Traefik) |
+| Prometheus | http://prometheus.dev.lab | Ingress (Traefik) |
+| Kibana | http://kibana.dev.lab | Ingress (Traefik) |
+| Jaeger | http://jaeger.dev.lab | Ingress (Traefik) |
+| Vault | http://vault.dev.lab | Ingress (Traefik) |
+| Traefik Dashboard | http://traefik.dev.lab/dashboard/ | Ingress (Traefik) con BasicAuth |
 
 ### 6.3 Credenciales por defecto
 
@@ -406,7 +411,7 @@ kubectl delete namespace event-management monitoring security devops-tools ingre
 **Habilitar TLS en Traefik:**
 - Configurar certResolver con Let's Encrypt en traefik-values.yaml.
 - Cambiar entryPoints de web a websecure en los IngressRoute.
-- Asegurar que los dominios .desarrollo sean reales y accesibles desde internet (o usar un DNS interno).
+- Asegurar que los dominios .dev.lab sean reales y accesibles desde internet (o usar un DNS interno).
 
 **Alta disponibilidad:**
 - PostgreSQL: Usar operador como CloudNativePG o Patroni.

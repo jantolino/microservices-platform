@@ -2,14 +2,25 @@
 commonLabels:
   part-of: microservices-platform
 
-# Recursos para el binario principal (Jaeger V2 usa un solo despliegue por defecto)
-resources:
-  limits:
-    cpu: 50m
-    memory: 256Mi
-  requests:
-    cpu: 100m
-    memory: 512Mi
+jaeger:
+  # Recursos para el binario principal (Jaeger V2 usa un solo despliegue por defecto)
+  # Nota: en este chart resources cuelga de "jaeger:", no de la raíz
+  resources:
+    limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  # Contraseña de Elasticsearch desde el Secret que auto-genera el chart de ES.
+  # Se resuelve en userconfig con ${env:ELASTIC_PASSWORD} (sustitución nativa de Jaeger v2).
+  extraEnv:
+    - name: ELASTIC_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-elastic-password
+          key: elastic-password
 
 userconfig:
 
@@ -53,20 +64,20 @@ userconfig:
       backends:
         primary_store_elasticsearch:
           elasticsearch:
-            server_urls: ["https://elasticsearch-master.monitoring.svc.cluster.local:9200"]
+            server_urls: ["http://elasticsearch-master.monitoring.svc.cluster.local:9200"]
             auth:
               basic:
                 username: elastic
-                password: ZeLWSazaFjOCXPuF
+                password: ${env:ELASTIC_PASSWORD}
             tls:
               insecure_skip_verify: true
         archive_store_elasticsearch:
           elasticsearch:
-            server_urls: ["https://elasticsearch-master.monitoring.svc.cluster.local:9200"]
+            server_urls: ["http://elasticsearch-master.monitoring.svc.cluster.local:9200"]
             auth:
               basic:
                 username: elastic
-                password: ZeLWSazaFjOCXPuF
+                password: ${env:ELASTIC_PASSWORD}
             tls:
               insecure_skip_verify: true
 
@@ -74,39 +85,19 @@ userconfig:
     jaeger_storage_exporter:
       trace_storage: primary_store_elasticsearch
 
+# Desactivado: el chart solo soporta ES_PASSWORD en texto plano (storage.elasticsearch.password)
+# para los jobs de mantenimiento. Sin credenciales en Git, el job no puede autenticarse.
 esIndexCleaner:
-  enabled: true
+  enabled: false
 
 storage:
   elasticsearch:
     tls:
       enabled: true
       skip_verify: true
-    url: "https://elasticsearch-master.monitoring.svc.cluster.local:9200"
+    url: "http://elasticsearch-master.monitoring.svc.cluster.local:9200"
     user: elastic
-    password: ZeLWSazaFjOCXPuF
+    # ES_PASSWORD no se define aquí (sería texto plano en Git);
+    # el deployment principal la recibe via jaeger.extraEnv.
 
-# ------------------------------------------------------------------------------
-# Objetos adicionales (Aquí es donde inyectamos el puente a Prometheus)
-# ------------------------------------------------------------------------------
-extraObjects:
-  - apiVersion: monitoring.coreos.com/v1
-    kind: ServiceMonitor
-    metadata:
-      name: jaeger-metrics-monitor
-      labels:
-        # Crucial: ajusta 'prometheus' al nombre de tu release del stack
-        release: prometheus
-        part-of: microservices-platform
-    spec:
-      namespaceSelector:
-        matchNames:
-          - monitoring
-      selector:
-        matchLabels:
-          app.kubernetes.io/instance: jaeger
-          app.kubernetes.io/name: jaeger
-      endpoints:
-        - port: internal-metrics
-          interval: 15s
-          path: /metrics
+# ServiceMonitor centralizado en config/jaeger/jaeger-service-monitor.yaml

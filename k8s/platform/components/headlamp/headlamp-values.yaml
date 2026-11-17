@@ -1,0 +1,27 @@
+# Nombre estable del Service/Deployment (lo referencia el IngressRoute en config/headlamp)
+fullnameOverride: headlamp
+
+podLabels:
+  part-of: microservices-platform
+
+config:
+  inCluster: true
+  # Cada usuario se autentica con su propio token (nunca el del ServiceAccount del pod)
+  unsafeUseServiceAccountToken: false
+
+# El chart enlaza por defecto su ServiceAccount a cluster-admin; se desactiva.
+# El acceso se otorga por usuario en config/headlamp/ (RBAC de solo lectura).
+clusterRoleBinding:
+  create: false
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

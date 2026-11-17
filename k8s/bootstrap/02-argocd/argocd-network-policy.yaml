@@ -1,0 +1,205 @@
+# Red mínima de arranque de ArgoCD (bootstrap). Requiere Cilium.
+# Única salida externa de la plataforma: argocd-repo-server -> GitHub + repos Helm (FQDN explícito, 443).
+# Integraciones posteriores (Traefik, Prometheus) van en k8s/platform/config/argocd/.
+---
+# 1. argocd-server: API server, repo-server y Redis
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argocd-server-bootstrap
+  namespace: argocd
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-server
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: argocd-repo-server
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: data-services
+            app: redis
+            redis_setup_type: standalone
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+# 2. argocd-application-controller: API server, repo-server y Redis
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argocd-application-controller-bootstrap
+  namespace: argocd
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-application-controller
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: argocd-repo-server
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: data-services
+            app: redis
+            redis_setup_type: standalone
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+# 3. argocd-applicationset-controller: API server y repo-server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argocd-applicationset-controller-bootstrap
+  namespace: argocd
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-applicationset-controller
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: argocd-repo-server
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+---
+# 4. argocd-repo-server: acepta solo componentes de ArgoCD; sale a Redis y a la allowlist externa
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argocd-repo-server-bootstrap
+  namespace: argocd
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-repo-server
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: argocd-server
+        - matchLabels:
+            app.kubernetes.io/name: argocd-application-controller
+        - matchLabels:
+            app.kubernetes.io/name: argocd-applicationset-controller
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: data-services
+            app: redis
+            redis_setup_type: standalone
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # DNS vía proxy de Cilium (necesario para toFQDNs): solo nombres internos y la allowlist
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*.cluster.local"
+              - matchName: github.com
+              - matchName: objects.githubusercontent.com
+              - matchName: release-assets.githubusercontent.com
+              - matchName: traefik.github.io
+              - matchName: kubernetes-sigs.github.io
+              - matchName: sonarsource.github.io
+              - matchName: aquasecurity.github.io
+              - matchName: redhat-cop.github.io
+              - matchName: jaegertracing.github.io
+              - matchName: prometheus-community.github.io
+              - matchName: charts.jetstack.io
+              - matchName: charts.jfrog.io
+              - matchName: charts.gitlab.io
+              - matchName: charts.jenkins.io
+              - matchName: charts.bitnami.com
+              - matchName: helm.runix.net
+              - matchName: charts.external-secrets.io
+              - matchName: helm.elastic.co
+              - matchName: helm.releases.hashicorp.com
+    # Allowlist externa (1.2f): GitHub + repos Helm de k8s/platform/components/*/kustomization.yaml
+    - toFQDNs:
+        - matchName: github.com
+        - matchName: objects.githubusercontent.com
+        - matchName: release-assets.githubusercontent.com
+        - matchName: traefik.github.io
+        - matchName: kubernetes-sigs.github.io
+        - matchName: sonarsource.github.io
+        - matchName: aquasecurity.github.io
+        - matchName: redhat-cop.github.io
+        - matchName: jaegertracing.github.io
+        - matchName: prometheus-community.github.io
+        - matchName: charts.jetstack.io
+        - matchName: charts.jfrog.io
+        - matchName: charts.gitlab.io
+        - matchName: charts.jenkins.io
+        - matchName: charts.bitnami.com
+        - matchName: helm.runix.net
+        - matchName: charts.external-secrets.io
+        - matchName: helm.elastic.co
+        - matchName: helm.releases.hashicorp.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

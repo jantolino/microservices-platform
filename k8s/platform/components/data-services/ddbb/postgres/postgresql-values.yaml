@@ -1,24 +1,25 @@
-# postgresql-sonarqube-values.yaml
-# PostgreSQL para GitLab y Nexus con imagen bitnamilegacy
+# Instancia PostgreSQL gestionada por CloudNativePG (chart cluster).
+# Valores base: charts/cluster/values.yaml. Servicios: postgres-rw / postgres-ro / postgres-r.
+# El operador se configura en cnpg-operator-values.yaml.
 
-commonLabels:
-  part-of: microservices-platform
+fullnameOverride: postgres
 
-image:
-  registry: docker.io
-  repository: bitnamilegacy/postgresql
-  tag: 17.6.0-debian-12-r2   # Ajusta al tag existente
-  pullPolicy: IfNotPresent
+type: postgresql
+mode: standalone
 
-# Credenciales del superusuario
-auth:
-  existingSecret: "postgres-credentials" # <--- Nombre del Secret que ESO creará
-  secretKeys:
-    postgresPasswordKey: "POSTGRES_PASSWORD" # <--- La key dentro de ese Secret  # Contraseña de administrador
+version:
+  postgresql: "17"
 
-# Recursos reducidos (modo standalone)
-architecture: standalone
-primary:
+cluster:
+  instances: 1
+
+  additionalLabels:
+    part-of: microservices-platform
+
+  storage:
+    size: 3Gi
+    storageClass: ""
+
   resources:
     requests:
       cpu: 100m
@@ -26,11 +27,24 @@ primary:
     limits:
       cpu: 250m
       memory: 512Mi
-  persistence:
-    enabled: true
-    storageClass: ""
-    size: 3Gi
 
-# Integración con Prometheus
-metrics:
-  enabled: true
+  # Secret basic-auth (username/password) creado por ESO en postgres-es.yaml
+  enableSuperuserAccess: true
+  superuserSecret: postgres-credentials
+
+  # Una sola instancia en Minikube: sin PDB y con afinidad por nodo
+  enablePDB: false
+  affinity:
+    topologyKey: kubernetes.io/hostname
+
+  postgresql:
+    parameters:
+      max_connections: "200"
+
+  monitoring:
+    enabled: true
+    # PodMonitor centralizado en config/postgres/postgres-pod-monitor.yaml
+    podMonitor:
+      enabled: false
+    prometheusRule:
+      enabled: false

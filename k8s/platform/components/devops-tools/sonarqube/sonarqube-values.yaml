@@ -8,30 +8,36 @@ community:
   enabled: true
 
 # MONITORING PASSCODE (OBLIGATORIO para las sondas de salud)
-# Puedes cambiar el valor por uno más seguro si lo deseas
-monitoringPasscode: "sonarqube-passcode-2026"
+# Valor en Vault: secret/data/platform/tools/sonarqube (via ESO, config/sonarqube/sonarqube-es.yaml)
+monitoringPasscodeSecretName: sonarqube-monitoring-passcode
+monitoringPasscodeSecretKey: monitoring-passcode
 
 # Reducción de recursos (requests y limits)
 resources:
   requests:
-    cpu: 500m
-    memory: 2Gi
+    cpu: 250m
+    memory: 1Gi
   limits:
     cpu: 1000m
-    memory: 4Gi
+    memory: 2Gi
+
+# Heap del Elasticsearch embebido (reducido para el clúster de desarrollo)
+elasticsearchJavaOpts: "-Xmx512m -Xms512m"
 
 # Habilitar persistencia para los datos de Elasticsearch
 persistence:
   enabled: true
-  storageClass: "standard"
-  size: 10Gi
+  storageClass: ""
+  size: 5Gi
 
 # Configuración de la base de datos externa PostgreSQL
 jdbcOverwrite:
   enabled: true
-  jdbcUrl: "jdbc:postgresql://postgresql.devops-tools.svc.cluster.local:5432/sonarqube"
+  jdbcUrl: "jdbc:postgresql://postgres-rw.data-services.svc.cluster.local:5432/sonarqube"
   jdbcUsername: "sonarqube"
-  jdbcPassword: "sonarqube456"   # Contraseña en texto plano (desarrollo)
+  # Contraseña desde Vault: secret/data/platform/databases/sonarqube (via ESO)
+  jdbcSecretName: sonarqube-jdbc
+  jdbcSecretPasswordKey: sonarqube-password
 
 # Activar el exportador de métricas para Prometheus
 prometheusExporter:

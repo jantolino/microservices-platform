@@ -1,0 +1,41 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: sonarqube-jdbc
+  namespace: devops-tools
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: 15m
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: sonarqube-jdbc
+    creationPolicy: Owner
+  data:
+    - secretKey: sonarqube-password
+      remoteRef:
+        key: secret/data/platform/databases/sonarqube
+        property: password
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: sonarqube-monitoring-passcode
+  namespace: devops-tools
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: 15m
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: sonarqube-monitoring-passcode
+    creationPolicy: Owner
+  data:
+    - secretKey: monitoring-passcode
+      remoteRef:
+        key: secret/data/platform/tools/sonarqube
+        property: monitoringPasscode

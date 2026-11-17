@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - platform-tls.yaml
+  - traefik-service-monitor.yaml
+  - traefik-ingress-from-world.yaml
+  - traefik-to-argocd.yaml
+  - traefik-to-jaeger.yaml
+  - traefik-to-kibana.yaml
+  - traefik-to-headlamp.yaml
+  - traefik-to-redis-insight.yaml
+  - traefik-to-gitlab.yaml
+  - traefik-to-jenkins.yaml
+  - traefik-to-artifactory.yaml
+  - traefik-to-sonarqube.yaml
+  - traefik-to-grafana.yaml
+  - traefik-to-prometheus.yaml
+  - traefik-to-vault.yaml
+  - traefik-to-rabbitmq.yaml
+  - traefik-to-pgadmin.yaml
+  - traefik-dashboard-auth.yaml
+  - traefik-dashboard-route.yaml

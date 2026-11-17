@@ -1,0 +1,25 @@
+# Consumidor: GitLab (webservice y sidekiq) -> Redis (6379). Labels `app:` del chart de GitLab: validar en cluster.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: redis-from-gitlab
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app: redis
+      redis_setup_type: standalone
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: repositories
+            app: gitlab-webservice-default
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: repositories
+            app: gitlab-sidekiq-all
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP

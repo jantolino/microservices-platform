@@ -13,6 +13,11 @@ server:
       cpu: 300m
       memory: 512Mi
 
+  # Habilita el endpoint /v1/sys/metrics en formato Prometheus
+  telemetry:
+    prometheus_retention_time: "24h"
+    disable_hostname: true
+
   # Habilitamos el almacenamiento persistente para no perder
   # los secretos si se reinicia el cluster
   dataStorage:

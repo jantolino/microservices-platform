@@ -1,0 +1,21 @@
+# Redis Insight: entra solo desde Traefik (5540). El egress a Redis está en components/data-services/redis-insight/.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: redis-insight
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: redis-insight
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: networking
+            app.kubernetes.io/name: traefik
+      toPorts:
+        - ports:
+            - port: "5540"
+              protocol: TCP

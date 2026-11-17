@@ -1,0 +1,21 @@
+# Salida de Traefik hacia pgAdmin (IngressRoute pgadmin-ui-route).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: traefik-to-pgadmin
+  namespace: networking
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: traefik
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: data-services
+            app.kubernetes.io/name: pgadmin4
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP

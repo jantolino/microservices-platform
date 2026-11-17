@@ -61,6 +61,8 @@ externalRedis:
   host: redis.data-services.svc.cluster.local
   # -- External Redis server port
   port: 6379
+  # Secret generado por bootstrap.sh con la clave `redis-password`
+  existingSecret: argocd-redis-auth
 
 # Si no necesitas notificaciones, también podemos desactivarlas
 notifications:

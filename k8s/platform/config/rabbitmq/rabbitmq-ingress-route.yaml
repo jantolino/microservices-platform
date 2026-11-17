@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: rabbitmq-ui-route
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`rabbitmq.dev.lab`)
+      kind: Rule
+      services:
+        - name: rabbitmq
+          port: 15672

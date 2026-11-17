@@ -1,6 +1,9 @@
 commonLabels:
   part-of: microservices-platform
 
+# Nombre estable de recursos (Service/Deployment "pgadmin" en vez de "pgadmin4-v1-62-0")
+fullnameOverride: pgadmin
+
 image:
   repository: dpage/pgadmin4
   tag: "9.13"
@@ -18,7 +21,7 @@ serverDefinitions:
       Group: "Servers"
       Port: 5432
       Username: "postgres"
-      Host: "postgresql.data-services.svc.cluster.local"
+      Host: "postgres-rw.data-services.svc.cluster.local"
       SSLMode: "prefer"
       MaintenanceDB: "postgres"
 

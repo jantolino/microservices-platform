@@ -29,9 +29,6 @@ trivy:
   severity: "HIGH,CRITICAL"
 
 
-# SERVICEMONITOR PARA PROMETHEUS
+# SERVICEMONITOR PARA PROMETHEUS (centralizado en config/trivy/)
 serviceMonitor:
-  enabled: true
-  labels:
-    release: prometheus  # Debe coincidir con tu Prometheus Operator
-  interval: 60s  # Scrape cada 60 segundos
+  enabled: false

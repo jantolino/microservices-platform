@@ -88,3 +88,8 @@ nb-configuration.xml
 
 microservicios/*
 !microservicios/.gitkeep
+
+##############################
+## Secretos locales (Vault init: unseal keys y root token)
+##############################
+k8s/.secrets/
