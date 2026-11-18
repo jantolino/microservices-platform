@@ -5,6 +5,8 @@ Documento vivo de planificación. Se actualiza al cerrar cada tarea (`[ ]` → `
 - 🖥️ = se puede realizar sin cluster (edición + `kustomize build --enable-helm`).
 - ☸️ = requiere cluster para validar.
 
+> Los hallazgos de la validación 18-11-2026 se cierran en `tasks/ROADMAP-fixes.md` (F00-F23).
+
 ---
 
 ## Rol
@@ -89,6 +91,9 @@ Como Arquitecto de Plataforma DevOps Senior, tu responsabilidad es:
 | `19-platform-tls` | 19 | Config posterior |
 | `20+-config-<x>` | 20+ | Config posterior por componente (argocd, redis, vault, traefik, …) |
 
+> Wave 19 = `19-platform-tls` (`config/platform-tls/`: CA raíz selfsigned + cert `*.dev.lab` + `TLSStore default`). Debe existir ANTES de que las rutas migren a `websecure` (1.42/F21, waves 20+).
+> Wave 21 (`21-config-cert-manager`) queda SIN contenido TLS (gap documentado): conserva solo el ServiceMonitor de cert-manager.
+
 ---
 
 ## Fase 0 — Guía y estructura 🖥️
@@ -102,9 +107,9 @@ Como Arquitecto de Plataforma DevOps Senior, tu responsabilidad es:
 
 ### Red
 - [ ] **1.1** ☸️ Verificar CNI: `kubectl get pods -n kube-system -o wide | grep -Ei 'calico|cilium|kindnet'`. Si no es Cilium, recrear Minikube con `--cni=cilium`. Validar label `k8s-app: kube-dns` de CoreDNS.
-- [x] **1.2** 🖥️ Añadir política común `allow-dns` por namespace en Foundation. Egress UDP/TCP 53 hacia `kube-system`/`k8s-app: kube-dns` en los 11 namespaces. Eliminadas las reglas DNS con `namespaceSelector: {}` de `vault-network-policy.yaml` y `operator-network-policy.yaml` (permitían puerto 53 hacia cualquier pod del cluster).
-- [ ] **1.2b** 🖥️ Anti-exfiltración DNS (requiere 1.1): `CiliumClusterwideNetworkPolicy` con regla DNS L7 que solo permita resolver `*.cluster.local`; excepción solo para `argocd-repo-server`: GitHub y dominios de los repos Helm (misma lista que 1.2f). **Debe reemplazar** a los `allow-dns` L3/L4 de Foundation: en Cilium, una regla L4 sin L7 sobre el mismo puerto anula el filtrado DNS L7 de otra política (hoy afecta a la regla DNS de `argocd-repo-server`).
-- [ ] **1.2c** 🖥️ Proteger CoreDNS: ingress en `kube-system` solo UDP/TCP 53 desde namespaces `part-of: microservices-platform`.
+- [x] **1.2** 🖥️ Añadir política común `allow-dns` por namespace en Foundation. Egress UDP/TCP 53 hacia `kube-system`/`k8s-app: kube-dns` en los 11 namespaces. Eliminadas las reglas DNS con `namespaceSelector: {}` de `vault-network-policy.yaml` y `operator-network-policy.yaml` (permitían puerto 53 hacia cualquier pod del cluster). → **superado por F14** (DNS L7 clusterwide; los `allow-dns` L3/L4 se eliminaron).
+- [x] **1.2b** 🖥️ Anti-exfiltración DNS (requiere 1.1): `CiliumClusterwideNetworkPolicy` con regla DNS L7 que solo permita resolver `*.cluster.local`; excepción solo para `argocd-repo-server`: GitHub y dominios de los repos Helm (misma lista que 1.2f). **Debe reemplazar** a los `allow-dns` L3/L4 de Foundation: en Cilium, una regla L4 sin L7 sobre el mismo puerto anula el filtrado DNS L7 de otra política (hoy afecta a la regla DNS de `argocd-repo-server`). → **resuelto por F14** en ROADMAP-fixes.md.
+- [x] **1.2c** 🖥️ Proteger CoreDNS: ingress en `kube-system` solo UDP/TCP 53 desde namespaces `part-of: microservices-platform`. → **resuelto por F15** en ROADMAP-fixes.md.
 - [x] **1.2d** 🖥️ Eliminar todo `ipBlock 0.0.0.0/0`: vault y VCO convertidos a `CiliumNetworkPolicy` — API server → `toEntities: [kube-apiserver]` (443/6443/8443, incluido el API server de Minikube); probes/webhooks → `fromEntities: [host, kube-apiserver]` (VCO 8081/9443).
 - [ ] **1.2e** ⏸️ **Pendiente — se decide con la plataforma activa** (apertura incremental). Mientras tanto no se concede ninguna salida adicional. Dudas abiertas:
   - [ ] **Artifactory:** ¿upstreams externos (Maven, npm, …) para descargar librerías? Si sí, `toFQDNs` por repo; si no, solo repo interno. `artifactory-network-policy.yaml` ya no usa `0.0.0.0/0` (corregido en 3.6): sin salida externa hasta decidirlo.
@@ -120,11 +125,11 @@ Como Arquitecto de Plataforma DevOps Senior, tu responsabilidad es:
 - [x] **1.5** 🖥️ Crear CA propia: `config/cert-manager/platform-ca.yaml` (selfsigned → `Certificate` raíz `isCA: true` → `ClusterIssuer` `platform-ca-issuer`) y `config/traefik/platform-tls.yaml` (certificado `*.dev.lab` + `TLSStore default` de Traefik). Migración de IngressRoutes a `websecure`: 1.42.
 
 ### Secretos
-- [ ] **1.6** 🔄 🖥️ Ampliar `bootstrap.sh`: sembrar en Vault contraseñas aleatorias **solo si no existen**. **Lista completa de credenciales a sembrar** (identificadas en auditoría):
+- [x] **1.6** 🔄 🖥️ Ampliar `bootstrap.sh`: sembrar en Vault contraseñas aleatorias **solo si no existen**. → **resuelto por F13** (`vault_seed_kv`) en ROADMAP-fixes.md. **Lista completa de credenciales a sembrar** (identificadas en auditoría):
   | Componente | Vault Path | Key | Estado en values |
   |---|---|---|---|
-  | Postgres | `secret/data/platform/databases/postgres` | `password` | Ya gestionado via ESO |
-  | pgAdmin | `secret/data/platform/tools/pgadmin` | `password` | Ya gestionado via ESO |
+  | Postgres | `secret/data/platform/databases/postgres` | `password` | Ya gestionado via ESO — **SE SIEMBRA (F13)** |
+  | pgAdmin | `secret/data/platform/tools/pgadmin` | `password` | Ya gestionado via ESO — **SE SIEMBRA (F13)** |
   | GitLab Postgres | `secret/data/platform/databases/postgres` | `password` | Ya gestionado via ESO (`gitlab-postgres-es.yaml`) |
   | Grafana | `secret/data/platform/tools/grafana` | `admin-user`, `admin-password` | Ya gestionado via ESO (`grafana-es.yaml`) — falta seed |
   | Jenkins | `secret/data/platform/tools/jenkins` | `jenkins-admin-user`, `jenkins-admin-password` | Ya gestionado via ESO (`jenkins-es.yaml`) — falta seed |
@@ -132,13 +137,13 @@ Como Arquitecto de Plataforma DevOps Senior, tu responsabilidad es:
   | SonarQube monitor | `secret/data/platform/tools/sonarqube` | `monitoringPasscode` | Ya gestionado via ESO (`sonarqube-es.yaml`) — falta seed |
   | Artifactory DB | `secret/data/platform/databases/artifactory` | `password` | Ya gestionado via ESO (`artifactory-es.yaml`) — falta seed |
   | Artifactory keys | `secret/data/platform/tools/artifactory` | `joinKey`, `masterKey`, `adminPassword` | Ya gestionado via ESO (`artifactory-es.yaml`) — falta seed |
-  | RabbitMQ | `secret/data/platform/tools/rabbitmq` | `default_user`, `default_pass` | Eliminados del spec; el operador genera aleatorias — seed opcional |
+  | ~~RabbitMQ~~ | — | — | **NO sembrar**: el operador genera `rabbitmq-default-user` (`rabbitmq-cluster.yaml` lín. 21-23) |
   | Jaeger ES | Referenciar secret `elasticsearch-master-elastic-password` | `elastic-password` | Resuelto via `secretKeyRef` (sin seed en Vault) |
-  | Redis | `secret/data/platform/databases/redis` | `password` | Ya gestionado via PushSecret |
-- [ ] **1.7** 🖥️ Unificar ExternalSecrets a `external-secrets.io/v1` (p. ej. `postgres-es.yaml`, `pgadmin-es.yaml`).
+  | ~~Redis~~ | — | — | **NO sembrar**: PushSecret ya la publica (`config/redis/redis-push-secret.yaml`) |
+- [x] **1.7** 🖥️ Unificar ExternalSecrets a `external-secrets.io/v1` (p. ej. `postgres-es.yaml`, `pgadmin-es.yaml`). → **resuelto por F08** en ROADMAP-fixes.md (grep v1beta1 = 0).
 
 ### Observabilidad
-- [ ] **1.8** 🖥️ Regla de selección de ServiceMonitors: `serviceMonitorSelectorNilUsesHelmValues: false` o label `release: kube-prometheus-stack` uniforme.
+- [x] **1.8** 🖥️ Regla de selección de ServiceMonitors: `serviceMonitorSelectorNilUsesHelmValues: false` o label `release: kube-prometheus-stack` uniforme. → **resuelto por F10** en ROADMAP-fixes.md.
 
 ### Almacenamiento
 - [x] **1.9** 🔄 🖥️ Unificar StorageClass a `local-default`: annotation `storageclass.kubernetes.io/is-default-class: "true"` añadida a `local-default.yaml` y todos los `"standard"` → `""` (sonarqube, jenkins, prometheus-stack, rabbitmq).
@@ -179,11 +184,11 @@ Como Arquitecto de Plataforma DevOps Senior, tu responsabilidad es:
   - `postgresql-values.yaml` líneas 46-47: `podMonitor.enabled: true` → `false`
   - `jaeger-values.yaml` líneas 92-112: eliminar bloque `extraObjects` con ServiceMonitor inline
 - [x] **1.37** 🆕 🖥️ **Agregar `CreateNamespace=true` a `18-redis-insight.yaml`**: solo tiene `ServerSideApply=true`, inconsistente con los otros 18 wrappers.
-- [ ] **1.38** 🆕 🖥️ **Corregir Vault README**: múltiples líneas (22, 36, 52-53, 62-63, 72, 133, 166, 178, 200-203, 209, 216, 221, 232, 234) usan namespace `security` o `vault` → cambiar a `secrets-manager`. Línea 185 `vault.desarrollo` → `vault.dev.lab`.
-- [ ] **1.39** 🆕 🖥️ **Corregir stale comment en `traefik-to-redis-insight.yaml`** (B10): línea 3 referencia `config/redis/redis-insight-network-policy.yaml` → el archivo real está en `config/redis-insight/redis-insight-network-policy.yaml`.
-- [ ] **1.40** 🆕 🖥️ **Corregir comentario en `secrets-manager.yaml`** (B9): comentario dice `'vault'` → debe decir `'secrets-manager'`.
-- [ ] **1.41** 🆕 🖥️ **Reescribir Foundation README** (B8): referencia archivos inexistentes (`namespace.yaml`, `persistent-volumes.yaml`, `storage-class.yaml`, `network-policies.yaml`).
-- [ ] **1.42** 🆕 🖥️ **Migrar IngressRoutes a `websecure` + TLS**: todos los `*-ingress-route.yaml` usan `entryPoints: [web]`. Con `TLSStore default` desplegado (1.5), cambiar cada IngressRoute a `entryPoints: [websecure]` + `tls: {}` por componente.
+- [x] **1.38** 🆕 🖥️ **Corregir Vault README**: múltiples líneas (22, 36, 52-53, 62-63, 72, 133, 166, 178, 200-203, 209, 216, 221, 232, 234) usan namespace `security` o `vault` → cambiar a `secrets-manager`. Línea 185 `vault.desarrollo` → `vault.dev.lab`. → **resuelto por F17** en ROADMAP-fixes.md.
+- [x] **1.39** 🆕 🖥️ **Corregir stale comment en `traefik-to-redis-insight.yaml`** (B10): línea 3 referencia `config/redis/redis-insight-network-policy.yaml` → el archivo real está en `config/redis-insight/redis-insight-network-policy.yaml`.
+- [x] **1.40** 🆕 🖥️ **Corregir comentario en `secrets-manager.yaml`** (B9): comentario dice `'vault'` → debe decir `'secrets-manager'`. → **resuelto por F18** en ROADMAP-fixes.md.
+- [x] **1.41** 🆕 🖥️ **Reescribir Foundation README** (B8): referencia archivos inexistentes (`namespace.yaml`, `persistent-volumes.yaml`, `storage-class.yaml`, `network-policies.yaml`). → **resuelto por F19** en ROADMAP-fixes.md.
+- [x] **1.42** 🆕 🖥️ **Migrar IngressRoutes a `websecure` + TLS**: todos los `*-ingress-route.yaml` usan `entryPoints: [web]`. Con `TLSStore default` desplegado (1.5), cambiar cada IngressRoute a `entryPoints: [websecure]` + `tls: {}` por componente. → **resuelto por F20+F21** en ROADMAP-fixes.md (TLS agrupado en wave 19; 16 rutas migradas).
 
 ## Fase 2 — Revalidar núcleo con red real ☸️
 
@@ -215,7 +220,7 @@ Como Arquitecto de Plataforma DevOps Senior, tu responsabilidad es:
   - [x] 🖥️ `components/` solo con kustomization y values (`releaseName: prometheus`); 3 IngressRoutes y política de scrape preexistente en `config/prometheus-stack/` (hosts `*.dev.lab`); README → `docs/components/prometheus-stack.md`.
   - [ ] ☸️ Validar nombres de servicio de las IngressRoutes con el release `prometheus`.
   - [x] Wrapper `config-prometheus-stack`.
-- [~] **3.3 postgres + pgadmin** — primer consumidor real de ESO; crear BBDD/usuarios para gitlab, sonarqube y artifactory (init script o Job).
+- [x] **3.3 postgres + pgadmin** — primer consumidor real de ESO; crear BBDD/usuarios para gitlab, sonarqube y artifactory (init script o Job). → **resuelto por F11** en ROADMAP-fixes.md (app-roles-es + Job idempotente).
   - [x] 🖥️ `postgres-network-policy.yaml` y `pgadmin-ingress-route.yaml` (host `pgadmin.dev.lab`) movidos a `config/postgres/` y referenciados; README → `docs/components/postgres.md`.
   - [ ] La política usa NetworkPolicy estándar con selectores sin validar (`# Ajusta según tu chart`) y sin regla para Prometheus ni egress; revisar al validar.
   - [x] **IngressRoute service name mismatch** (E9): `pgadmin-ingress-route.yaml` línea 15 usa `name: pgadmin-pgadmin4` pero el chart crea `pgadmin4-v1-62-0`. Fix: `fullnameOverride: pgadmin` en values (ver 1.26).
@@ -256,14 +261,14 @@ Como Arquitecto de Plataforma DevOps Senior, tu responsabilidad es:
   - [x] **StorageClass corregido** (1.9): `storageClass: ""`.
   - [x] **IngressRoute service name mismatch** (B3): `name: sonarqube` (ver 1.26).
   - [x] Wrapper `config-sonarqube`.
-- [~] **3.9 elk** — Elasticsearch, Kibana, Filebeat.
+- [~] **3.9 elk** — Elasticsearch, Kibana, Filebeat. → red/labels/monitores **resueltos por F12** en ROADMAP-fixes.md; pendiente F12b (exporter de métricas de ES, decisión abierta).
   - [x] 🖥️ `elk-network-policy.yaml` y `kibana-ingress-route.yaml` (host `kibana.dev.lab`) movidos a `config/elk/` y referenciados; README → `docs/components/elk.md`.
   - [x] 🖥️ Red completada en `config/elk/`.
   - [x] **Kibana HTTPS corregido** (E6): `kibana-values.yaml` usa `http://` (ES tiene `http.ssl.enabled: false`). **Filebeat YA usa HTTP correctamente — NO tocar.**
   - [x] **Kibana IngressRoute service name mismatch** (B2): `name: kibana` (ver 1.26).
-  - [ ] ☸️ Validar labels reales de pods (el chart de Elastic usa `app: <nombre>`; las políticas usan `app.kubernetes.io/name`) y puertos (5066 de Filebeat sin Service).
+  - [ ] ☸️ Validar labels reales de pods (el chart de Elastic usa `app: <nombre>`; las políticas usan `app.kubernetes.io/name`) y puertos (5066 de Filebeat sin Service). → 🖥️ labels/puertos corregidos por F12; queda la validación ☸️.
   - [ ] ☸️ Elasticsearch no expone `_prometheus/metrics` sin plugin/exporter; revisar.
-  - [ ] Filebeat necesita salida al API server (metadatos de Kubernetes): regla CNP pendiente.
+  - [x] Filebeat necesita salida al API server (metadatos de Kubernetes): regla CNP pendiente. → **resuelto por F12** (egress kube-apiserver 443/6443/8443 en filebeat-zero-trust).
   - [x] Wrapper `config-elk`.
 - [~] **3.10 jaeger** — depende de Elasticsearch.
   - [x] 🖥️ `jaeger-ingress-route.yaml` (host `jaeger.dev.lab`) movido a `config/jaeger/`; README → `docs/components/jaeger.md`.

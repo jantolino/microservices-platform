@@ -1,0 +1,66 @@
+# Credenciales de los roles de aplicación de Postgres (gitlab/sonarqube/artifactory).
+# Viven en data-services porque los roles de CNPG solo pueden leer secrets de SU namespace;
+# los consumidores (sonarqube-jdbc, artifactory-database) viven en devops-tools.
+# gitlab usa la MISMA contraseña que el superusuario (réplica distribuida, ROADMAP 1.6).
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: gitlab-db-credentials
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: 15m
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: gitlab-db-credentials
+    creationPolicy: Owner
+  data:
+    - secretKey: password
+      remoteRef:
+        key: secret/data/platform/databases/postgres      # réplica distribuida
+        property: password
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: sonarqube-db-credentials
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: 15m
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: sonarqube-db-credentials
+    creationPolicy: Owner
+  data:
+    - secretKey: password
+      remoteRef:
+        key: secret/data/platform/databases/sonarqube
+        property: password
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: artifactory-db-credentials
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: 15m
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: artifactory-db-credentials
+    creationPolicy: Owner
+  data:
+    - secretKey: password
+      remoteRef:
+        key: secret/data/platform/databases/artifactory
+        property: password

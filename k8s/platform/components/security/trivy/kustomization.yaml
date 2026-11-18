@@ -4,9 +4,10 @@ kind: Kustomization
 namespace: security
 
 helmCharts:
-  - name: trivy
+  - name: trivy-operator
     repo: https://aquasecurity.github.io/helm-charts
     version: 0.32.1
     releaseName: trivy
     namespace: security
     valuesFile: trivy-values.yaml
+    includeCRDs: true

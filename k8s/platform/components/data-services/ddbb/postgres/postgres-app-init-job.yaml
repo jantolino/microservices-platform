@@ -1,0 +1,92 @@
+# Job idempotente: crea/actualiza los roles de aplicación (gitlab, sonarqube, artifactory)
+# y sus BBDD en el Cluster CNPG. Hook PostSync: corre tras cada sync de la app (con el Cluster
+# y los ExternalSecrets ya Healthy) y se recrea en cada sync, re-aplicando las contraseñas
+# vigentes en Vault. Una rotación en Vault requiere un sync de la app para propagarse.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-app-init
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 4
+  activeDeadlineSeconds: 900
+  template:
+    metadata:
+      labels:
+        part-of: microservices-platform
+        app: postgres-app-init
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: psql-init
+          image: postgres:17-alpine   # misma major que el Cluster (version.postgresql "17")
+          env:
+            - name: PGHOST
+              value: postgres-rw.data-services.svc.cluster.local
+            - name: PGUSER
+              value: postgres
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            - name: APP_PASS_GITLAB
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-db-credentials
+                  key: password
+            - name: APP_PASS_SONARQUBE
+              valueFrom:
+                secretKeyRef:
+                  name: sonarqube-db-credentials
+                  key: password
+            - name: APP_PASS_ARTIFACTORY
+              valueFrom:
+                secretKeyRef:
+                  name: artifactory-db-credentials
+                  key: password
+          command: ["/bin/sh", "-e", "-c"]
+          args:
+            - |
+              i=0
+              until psql -c 'SELECT 1' >/dev/null 2>&1; do
+                i=$((i+1)); [ "$i" -gt 120 ] && { echo "postgres-rw no aceptó conexiones"; exit 1; }
+                sleep 5
+              done
+
+              psql -v ON_ERROR_STOP=1 --set=app_name=gitlab --set=app_pass="$APP_PASS_GITLAB" <<'SQL'
+              SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'app_name', :'app_pass')
+              WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'app_name') \gexec
+              ALTER ROLE :"app_name" LOGIN PASSWORD :'app_pass';
+              SQL
+
+              psql -v ON_ERROR_STOP=1 --set=app_name=sonarqube --set=app_pass="$APP_PASS_SONARQUBE" <<'SQL'
+              SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'app_name', :'app_pass')
+              WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'app_name') \gexec
+              ALTER ROLE :"app_name" LOGIN PASSWORD :'app_pass';
+              SQL
+
+              psql -v ON_ERROR_STOP=1 --set=app_name=artifactory --set=app_pass="$APP_PASS_ARTIFACTORY" <<'SQL'
+              SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'app_name', :'app_pass')
+              WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'app_name') \gexec
+              ALTER ROLE :"app_name" LOGIN PASSWORD :'app_pass';
+              SQL
+
+              psql -v ON_ERROR_STOP=1 <<'SQL'
+              SELECT 'CREATE DATABASE gitlabhq_production OWNER gitlab'
+              WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'gitlabhq_production') \gexec
+              ALTER DATABASE gitlabhq_production OWNER TO gitlab;
+              SELECT 'CREATE DATABASE sonarqube OWNER sonarqube'
+              WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'sonarqube') \gexec
+              ALTER DATABASE sonarqube OWNER TO sonarqube;
+              SELECT 'CREATE DATABASE artifactory OWNER artifactory'
+              WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'artifactory') \gexec
+              ALTER DATABASE artifactory OWNER TO artifactory;
+              SQL
+
+              echo "Roles y BBDD de aplicaciones verificados."

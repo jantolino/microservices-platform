@@ -3,6 +3,9 @@ kind: Kustomization
 
 namespace: devops-tools
 
+resources:
+  - artifactory-es.yaml
+
 helmCharts:
   - name: artifactory-oss
     repo: https://charts.jfrog.io

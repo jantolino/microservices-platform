@@ -46,6 +46,9 @@ NAMESPACES=(
 # StorageClasses creadas por Foundation
 STORAGE_CLASSES=("local-default" "nfs")
 
+# Políticas clusterwide de Cilium creadas por Foundation (sin namespace: sobreviven al borrado de namespaces)
+CLUSTERWIDE_POLICIES=("dns-allowlist-clusterwide" "coredns-ingress-protection")
+
 # Nombres de ClusterRoles, ClusterRoleBindings y Webhooks creados por bootstrap.sh y las apps de ArgoCD
 CLUSTER_PATTERN="argocd|cert-manager|external-secrets|externalsecret|secretstore|vault|redis"
 
@@ -329,6 +332,16 @@ for sc in "${STORAGE_CLASSES[@]}"; do
             log_info "StorageClass $sc eliminado."
         else
             log_warning "No se pudo eliminar StorageClass $sc"
+        fi
+    fi
+done
+
+for ccnp in "${CLUSTERWIDE_POLICIES[@]}"; do
+    if kubectl get ciliumclusterwidenetworkpolicy "$ccnp" &>/dev/null; then
+        if kubectl delete ciliumclusterwidenetworkpolicy "$ccnp" >/dev/null 2>&1; then
+            log_info "CiliumClusterwideNetworkPolicy $ccnp eliminada."
+        else
+            log_warning "No se pudo eliminar CiliumClusterwideNetworkPolicy $ccnp"
         fi
     fi
 done

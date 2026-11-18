@@ -2,7 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - sonarqube-es.yaml
   - sonarqube-service-monitor.yaml
   - sonarqube-network-policy.yaml
   - sonarqube-ingress-route.yaml

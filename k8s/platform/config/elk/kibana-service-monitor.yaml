@@ -8,7 +8,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: kibana
+      app: kibana   # ← label real del chart elastic 8.5.1
   namespaceSelector:
     matchNames:
       - monitoring

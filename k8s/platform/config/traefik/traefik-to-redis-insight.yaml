@@ -1,5 +1,5 @@
 # Salida de Traefik hacia Redis Insight (IngressRoute redis-insight-route).
-# La entrada correspondiente está en k8s/platform/config/redis/redis-insight-network-policy.yaml.
+# La entrada correspondiente está en k8s/platform/config/redis-insight/redis-insight-network-policy.yaml.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:

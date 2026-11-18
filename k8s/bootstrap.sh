@@ -266,6 +266,8 @@ path "sys/mounts/*"           { capabilities = ["create","read","update","delete
 path "sys/mounts"             { capabilities = ["read","list"] }
 path "sys/policies/acl/*"     { capabilities = ["create","read","update","delete","list"] }
 path "auth/kubernetes/role/*" { capabilities = ["create","read","update","delete","list"] }
+path "sys/audit"              { capabilities = ["read","list","sudo"] }
+path "sys/audit/*"            { capabilities = ["create","read","update","delete","list","sudo"] }
 POLICY
 vault write auth/kubernetes/role/vault-config-operator \
   bound_service_account_names=default \
@@ -274,6 +276,54 @@ vault write auth/kubernetes/role/vault-config-operator \
   ttl=1h
 EOF
     log_success "Auth de Vault configurado."
+}
+
+# Semillas de credenciales de componentes (idempotente: solo crea el path si NO existe;
+# un bootstrap repetido NO rota contraseñas ya establecidas).
+# Requiere el motor KV v2 'secret/', que crea el VCO (SecretEngineMount): se espera a que exista.
+# Cada path se escribe en UNA sola operación (kv put reemplaza el documento completo).
+vault_seed_kv() {
+    local token
+    token="$(read_root_token)"
+    if [ -z "$token" ]; then
+        log_error "No se encontró el root token en $VAULT_INIT_FILE."
+        exit 1
+    fi
+
+    log_info "Sembrando credenciales de componentes en Vault (solo si no existen)..."
+    kubectl exec -i -n "$NAMESPACE_VAULT" "$VAULT_POD" -c vault -- env VAULT_TOKEN="$token" sh -s >/dev/null <<'EOF'
+set -e
+i=0
+until vault secrets list | grep -q '^secret/'; do
+  i=$((i+1)); [ "$i" -gt 120 ] && { echo "El motor KV 'secret/' no apareció en 600s (revisa el VCO / SecretEngineMount)." >&2; exit 1; }
+  sleep 5
+done
+
+# Aleatorio generado por el propio Vault (no depende de openssl en la imagen)
+rand() { vault write -field=random sys/tools/random/32 format=hex; }
+
+# seed <path> clave=valor [clave=valor ...]: escribe todas las claves juntas si el path no existe
+seed() {
+  p="$1"; shift
+  if vault kv get "$p" >/dev/null 2>&1; then
+    return 0
+  fi
+  for kv in "$@"; do
+    [ -n "${kv#*=}" ] || { echo "Valor vacío para '${kv%%=*}' en $p" >&2; exit 1; }
+  done
+  vault kv put "$p" "$@" >/dev/null
+}
+
+seed secret/platform/databases/postgres    password="$(rand)"
+seed secret/platform/tools/pgadmin         password="$(rand)"
+seed secret/platform/tools/grafana         admin-user=admin admin-password="$(rand)"
+seed secret/platform/tools/jenkins         jenkins-admin-user=admin jenkins-admin-password="$(rand)"
+seed secret/platform/databases/sonarqube   password="$(rand)"
+seed secret/platform/tools/sonarqube       monitoringPasscode="$(rand)"
+seed secret/platform/databases/artifactory password="$(rand)"
+seed secret/platform/tools/artifactory     masterKey="$(rand)" joinKey="$(rand)" adminPassword="$(rand)"
+EOF
+    log_success "Credenciales de componentes sembradas en Vault."
 }
 
 # El VCO arranca justo después del unseal y puede quedar en backoff si intentó
@@ -491,6 +541,7 @@ fi
 vault_unseal
 vault_seed_auth
 restart_vault_config_operator
+vault_seed_kv
 
 # ============================================
 # Finalización

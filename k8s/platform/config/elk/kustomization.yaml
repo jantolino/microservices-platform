@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - elasticsearch-service-monitor.yaml
   - kibana-service-monitor.yaml
-  - filebeat-service-monitor.yaml
+  - filebeat-pod-monitor.yaml
   - elk-network-policy.yaml
   - elk-clients-network-policy.yaml
   - kibana-ingress-route.yaml

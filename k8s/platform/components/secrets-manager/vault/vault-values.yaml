@@ -24,6 +24,13 @@ server:
     enabled: true
     size: 10Gi
 
+  # Volumen persistente para el audit device (VaultAudit en config/vault-config-operator),
+  # montado en /vault/audit. Cambia volumeClaimTemplates: en un clúster ya desplegado
+  # requiere recrear el StatefulSet (kubectl delete sts vault --cascade=orphan).
+  auditStorage:
+    enabled: true
+    size: 2Gi
+
 # Interfaz Gráfica (UI)
 ui:
   enabled: true

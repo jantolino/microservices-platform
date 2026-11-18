@@ -9,6 +9,10 @@ prometheus:
     # Retención de datos: cuánto tiempo se guardan las métricas antes de borrarse
     retention: 10d
 
+    # Selección explícita de ServiceMonitors (1.8): con selector nil + false,
+    # Prometheus selecciona TODOS los SM (centralizados en config/<x>/ y etiquetados release: prometheus)
+    serviceMonitorSelectorNilUsesHelmValues: false
+
     # Persistencia: Vital para no perder tus gráficas y datos al reiniciar pods
     storageSpec:
       volumeClaimTemplate:

@@ -15,7 +15,7 @@ controller:
   image:
     registry: docker.io
     repository: jenkins/jenkins
-    tag: "lts"
+    tag: "2.555.1-jdk21"   # appVersion del chart 5.9.18; imagen testeada por el chart (Chart.yaml artifacthub.io/images)
     pullPolicy: IfNotPresent
 
   # Recursos (CPU y memoria)
@@ -37,7 +37,7 @@ controller:
     passwordKey: jenkins-admin-password
 
   # URL pública de Jenkins (usada en la interfaz)
-  jenkinsUrl: "http://jenkins.dev.lab"
+  jenkinsUrl: "https://jenkins.dev.lab"
   jenkinsAdminEmail: "admin@microservices-platform.local"
 
   # Desactivamos la creación automática del Ingress (lo haremos manualmente)
@@ -49,27 +49,27 @@ controller:
     # ------------------------------------------------------------
     # Plugins esenciales para pipelines y Kubernetes
     # ------------------------------------------------------------
-    - "kubernetes:latest"
+    - "kubernetes:4423.vb_59f230b_ce53"
     # Permite que Jenkins cree pods dinámicos en Kubernetes para ejecutar builds.
     # Cada job puede usar un pod efímero con las herramientas necesarias.
 
-    - "workflow-aggregator:latest"
+    - "workflow-aggregator:608.v67378e9d3db_1"
     # Proporciona el conjunto de plugins para pipelines declarativas y scripted.
     # Esencial para definir flujos CI/CD como código.
 
-    - "git:latest"
+    - "git:5.10.1"
     # Integra Git con Jenkins, permitiendo clonar repositorios, gestionar branches,
     # y ejecutar hooks de Git. Necesario para cualquier integración con GitLab.
 
-    - "credentials-binding:latest"
+    - "credentials-binding:728.v902a_273b_8947"
     # Permite gestionar y usar credenciales de forma segura en los pipelines,
     # como tokens de GitLab, claves SSH, usuarios de Docker Hub, etc.
 
-    - "pipeline-stage-view:latest"
+    - "pipeline-stage-view:2.41"
     # Añade una visualización gráfica de las etapas de los pipelines en la UI de Jenkins,
     # facilitando la depuración y el seguimiento.
 
-    - "configuration-as-code:latest"
+    - "configuration-as-code:2074.va_57f83f7a_10b_"
     # Implementa Jenkins Configuration as Code (JCasC), permitiendo definir la
     # configuración de Jenkins (plugins, credenciales, jobs) en un fichero YAML.
     # Esencial para un despliegue reproducible.
@@ -77,7 +77,7 @@ controller:
     # ------------------------------------------------------------
     # Plugins específicos para GitLab
     # ------------------------------------------------------------
-    - "gitlab-plugin:latest"
+    - "gitlab-plugin:1.2162.ve2e85250a_db_a_"
     # Permite que Jenkins reciba notificaciones de GitLab (webhooks) y envíe el estado
     # de los builds de vuelta a GitLab. Activa pipelines automáticamente tras cada push
     # o merge request.
@@ -85,7 +85,7 @@ controller:
     # ------------------------------------------------------------
     # Plugins para construcción de imágenes Docker
     # ------------------------------------------------------------
-    - "docker-workflow:latest"
+    - "docker-workflow:653.v2f2c08eff0ec"
     # Proporciona pasos en pipelines para construir, publicar y gestionar imágenes
     # Docker. Se integra con el plugin de credenciales para usar registries privados.
 
@@ -126,7 +126,7 @@ agent:
   image:
     registry: docker.io
     repository: jenkins/inbound-agent
-    tag: "latest"
+    tag: "3355.v388858a_47b_33-19"   # default del chart 5.9.18 (agent.image.tag)
     pullPolicy: IfNotPresent
   resources:
     requests:

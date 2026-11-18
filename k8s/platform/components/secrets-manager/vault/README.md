@@ -19,7 +19,7 @@
 
 ## 1. Introducción
 
-Vault es una herramienta de gestión de secrets desarrollada por HashiCorp que centraliza el almacenamiento, control de acceso y rotación de credenciales sensibles (claves API, contraseñas, certificados). En este proyecto, se despliega en el namespace `security` utilizando Helm con una configuración personalizada que asegura persistencia de datos, etiquetado consistente (`part-of: microservices-platform`) y habilitación de la interfaz gráfica para facilitar la administración.
+Vault es una herramienta de gestión de secrets desarrollada por HashiCorp que centraliza el almacenamiento, control de acceso y rotación de credenciales sensibles (claves API, contraseñas, certificados). En este proyecto, se despliega en el namespace `secrets-manager` utilizando Helm con una configuración personalizada que asegura persistencia de datos, etiquetado consistente (`part-of: microservices-platform`) y habilitación de la interfaz gráfica para facilitar la administración.
 
 ## 2. Documentación
 
@@ -33,7 +33,7 @@ Vault es una herramienta de gestión de secrets desarrollada por HashiCorp que c
 - Kubernetes 1.19+ (probado en WSL2/Ubuntu).
 - `kubectl` configurado con acceso al clúster.
 - `Helm` 3.0+ instalado.
-- Namespace `security` creado (los comandos de instalación lo crean con `--create-namespace`).
+- Namespace `secrets-manager` creado (los comandos de instalación lo crean con `--create-namespace`).
 - Archivo `vault-values.yaml` disponible en el directorio actual.
 - Permisos de administrador para configurar RBAC (el operador necesita crear ServiceAccounts y roles).
 
@@ -50,7 +50,7 @@ helm repo update
 
 ```bash
 helm install vault hashicorp/vault \
-  --namespace security \
+  --namespace secrets-manager \
   --create-namespace \
   -f vault-sonarqube-values.yaml \
   --dry-run --debug
@@ -60,7 +60,7 @@ helm install vault hashicorp/vault \
 
 ```bash
 helm upgrade --install vault hashicorp/vault \
-  --namespace vault \
+  --namespace secrets-manager \
   --create-namespace \
   -f vault-values.yaml
 ```
@@ -69,10 +69,10 @@ helm upgrade --install vault hashicorp/vault \
 
 ```bash
 # Verificar que los pods estén en estado Running/Ready
-kubectl get pods -n security -l app.kubernetes.io/name=vault
+kubectl get pods -n secrets-manager -l app.kubernetes.io/name=vault
 
 # Esperar a que Vault esté listo
-kubectl wait --for=condition=Ready vault-0 -n security --timeout=300s
+kubectl wait --for=condition=Ready vault-0 -n secrets-manager --timeout=300s
 ```
 
 ## 5. Detalles de Implementación
@@ -130,7 +130,7 @@ La instalación personalizada crea:
 ### 6.1 Port-forward local
 
 ```bash
-kubectl port-forward -n security svc/vault 8200:8200
+kubectl port-forward -n secrets-manager svc/vault 8200:8200
 ```
 
 Acceder a `http://localhost:8200` en el navegador.
@@ -163,7 +163,7 @@ kubectl exec -it vault-0 -n secrets-manager -- vault operator unseal
 ### 6.3 Acceso con root token
 
 ```bash
-kubectl exec -it vault-0 -n security -- vault login <root-token>
+kubectl exec -it vault-0 -n secrets-manager -- vault login <root-token>
 ```
 
 ### 6.4 Exposición mediante Ingress (Traefik)
@@ -197,28 +197,28 @@ Ajustar el host según la configuración de DNS local.
 
 ```bash
 # Estado de los pods
-kubectl get pods -n security -l app.kubernetes.io/name=vault
+kubectl get pods -n secrets-manager -l app.kubernetes.io/name=vault
 
 # Estado interno de Vault
-kubectl exec -it vault-0 -n security -- vault status
+kubectl exec -it vault-0 -n secrets-manager -- vault status
 ```
 
 ### 7.2 Logs del servidor
 
 ```bash
-kubectl logs -n security vault-0
+kubectl logs -n secrets-manager vault-0
 ```
 
 ### 7.3 Reiniciar Vault
 
 ```bash
 # Reiniciar el StatefulSet
-kubectl rollout restart statefulset/vault -n security
+kubectl rollout restart statefulset/vault -n secrets-manager
 ```
 
 ### 7.4 Solución de problemas comunes
 
-**Vault no arranca**: Verificar que el PVC esté en estado `Bound` (`kubectl get pvc -n security`). Revisar los logs para errores de almacenamiento.
+**Vault no arranca**: Verificar que el PVC esté en estado `Bound` (`kubectl get pvc -n secrets-manager`). Revisar los logs para errores de almacenamiento.
 
 **UI no accesible**: Si se usa `serviceType: LoadBalancer` en Minikube, ejecutar `minikube tunnel` para asignar una IP externa. Alternativamente, cambiar a `NodePort` o usar port-forward.
 
@@ -229,9 +229,9 @@ kubectl rollout restart statefulset/vault -n security
 ## 8. Desinstalación completa
 
 ```bash
-helm uninstall -n security vault
+helm uninstall -n secrets-manager vault
 # Eliminar PVCs residuales (opcional)
-kubectl delete pvc -n security -l app.kubernetes.io/name=vault
+kubectl delete pvc -n secrets-manager -l app.kubernetes.io/name=vault
 ```
 
 ---

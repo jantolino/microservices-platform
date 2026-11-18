@@ -48,6 +48,16 @@ gateway:
       namespacePolicy:
         from: All
 
+# Todas las rutas usan websecure (TLSStore default, wave 19): web solo redirige a https
+ports:
+  web:
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+
 # Configuración del servicio para Minikube
 service:
   type: LoadBalancer

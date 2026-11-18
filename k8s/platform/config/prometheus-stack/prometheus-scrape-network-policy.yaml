@@ -77,21 +77,24 @@ spec:
               protocol: TCP
     - toEndpoints:
         - matchLabels:
-            app.kubernetes.io/name: elasticsearch
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app: elasticsearch-master
       toPorts:
         - ports:
             - port: "9200"
               protocol: TCP
     - toEndpoints:
         - matchLabels:
-            app.kubernetes.io/name: kibana
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app: kibana
       toPorts:
         - ports:
             - port: "5601"
               protocol: TCP
     - toEndpoints:
         - matchLabels:
-            app.kubernetes.io/name: filebeat
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app: filebeat
       toPorts:
         - ports:
             - port: "5066"
@@ -113,7 +116,7 @@ spec:
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: security
-            app.kubernetes.io/name: trivy
+            app.kubernetes.io/name: trivy-operator
       toPorts:
         - ports:
             - port: "8080"
@@ -150,6 +153,14 @@ spec:
         - ports:
             - port: "4466"
               protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "9153"
+              protocol: TCP
     # Métricas del API server (kube-prometheus-stack)
     - toEntities:
         - kube-apiserver
@@ -168,15 +179,5 @@ spec:
         - ports:
             - port: "10250"
               protocol: TCP
-    # Resolución DNS de los targets
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
+    # DNS: lo concede la CCNP dns-allowlist-clusterwide (L7); una regla L4 aquí lo anularía
     # Pendiente: redis (exporter), redis-insight y pgadmin no exponen /metrics hoy

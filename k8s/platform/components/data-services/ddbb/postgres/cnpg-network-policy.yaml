@@ -67,6 +67,14 @@ spec:
               protocol: TCP
             - port: "8000"
               protocol: TCP
+    # Job postgres-app-init (roles y BBDD de aplicaciones)
+    - fromEndpoints:
+        - matchLabels:
+            app: postgres-app-init
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
   egress:
     - toEntities:
         - kube-apiserver

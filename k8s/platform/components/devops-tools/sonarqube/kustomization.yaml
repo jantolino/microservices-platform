@@ -3,6 +3,9 @@ kind: Kustomization
 
 namespace: devops-tools
 
+resources:
+  - sonarqube-es.yaml
+
 helmCharts:
   - name: sonarqube
     repo: https://SonarSource.github.io/helm-chart-sonarqube

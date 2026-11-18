@@ -6,7 +6,9 @@ namespace: data-services
 resources:
   - postgres-es.yaml
   - pgadmin-es.yaml
-  - pgadmin-env-patch.yaml
+  - app-roles-es.yaml
+  - postgres-app-init-job.yaml
+  - postgres-app-init-network-policy.yaml
   - cnpg-network-policy.yaml
 
 patches:
@@ -14,6 +16,12 @@ patches:
       group: postgresql.cnpg.io
       kind: Cluster
     path: cnpg-cluster-argocd-patch.yaml
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: pgadmin
+    path: pgadmin-env-patch.yaml
 
 helmCharts:
   - name: cloudnative-pg

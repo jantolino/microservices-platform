@@ -1,0 +1,35 @@
+# DNS L7 anti-exfiltración (1.2b): solo se permite resolver nombres internos del clúster.
+# Reemplaza a los allow-dns L3/L4 de Foundation (en Cilium, una regla L4 sin L7 sobre el
+# mismo puerto anula el filtrado DNS L7 de otra política).
+# Excepción (argocd-repo-server, allowlist FQDN 1.2f): bootstrap/02-argocd/argocd-network-policy.yaml.
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: dns-allowlist-clusterwide
+  labels:
+    part-of: microservices-platform
+spec:
+  # Solo añade la regla DNS: no activa default-deny en pods sin otras políticas
+  # (namespaces ajenos a la plataforma conservan su comportamiento). Requiere Cilium >= 1.15.
+  enableDefaultDeny:
+    egress: false
+    ingress: false
+  # Excluye kube-system: CoreDNS necesita reenviar consultas externas (forwarders)
+  endpointSelector:
+    matchExpressions:
+      - key: io.kubernetes.pod.namespace
+        operator: NotIn
+        values:
+          - kube-system
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*cluster.local"

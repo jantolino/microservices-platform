@@ -1,0 +1,50 @@
+# Puertos verificados contra el chart cert-manager 1.18.2 (releaseName cert-manager-v1-18-2):
+# webhook: contenedor 6443 (securePort, Service 443->https), health 6080; controller: healthz 8080; todos: metrics 9402.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cert-manager-minimal-boot
+  namespace: cert-manager
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: cert-manager   # cubre controller + webhook + cainjector
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"   # API server de Minikube
+              protocol: TCP
+  ingress:
+    # Webhook: el API server llama a cert-manager-webhook (6443)
+    - fromEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+    # Probes del kubelet (health de controller/webhook/cainjector)
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "6080"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
+    # Métricas 9402 desde Prometheus (ServiceMonitor en config/cert-manager)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "9402"
+              protocol: TCP

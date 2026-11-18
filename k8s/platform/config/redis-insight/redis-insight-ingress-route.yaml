@@ -19,7 +19,8 @@ metadata:
     part-of: microservices-platform
 spec:
   entryPoints:
-    - web
+    - websecure
+  tls: {}   # usa el TLSStore default (cert *.dev.lab, wave 19)
   routes:
     - match: Host(`redis-insight.dev.lab`)
       kind: Rule

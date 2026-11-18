@@ -1,77 +1,81 @@
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
 metadata:
   name: kibana-zero-trust
   namespace: monitoring
   labels:
     part-of: microservices-platform
 spec:
-  podSelector:
+  endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: kibana
-  policyTypes:
-    - Ingress
-    - Egress
+      app: kibana              # ← label real del chart elastic 8.5.1
   ingress:
-    # Traefik: UI
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: networking
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: traefik
-      ports:
-        - port: 5601
-    # Prometheus: scrape de métricas
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: prometheus
-      ports:
-        - port: 5601
+    # Traefik: UI 5601
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: networking
+            app.kubernetes.io/name: traefik
+      toPorts:
+        - ports:
+            - port: "5601"
+              protocol: TCP
+    # Prometheus: scrape 5601
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "5601"
+              protocol: TCP
   egress:
-    # Elasticsearch
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: elasticsearch
-      ports:
-        - port: 9200
+    # Elasticsearch 9200
+    - toEndpoints:
+        - matchLabels:
+            app: elasticsearch-master   # ← label real del chart
+      toPorts:
+        - ports:
+            - port: "9200"
+              protocol: TCP
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
 metadata:
   name: filebeat-zero-trust
   namespace: monitoring
   labels:
     part-of: microservices-platform
 spec:
-  podSelector:
+  endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: filebeat
-  policyTypes:
-    - Ingress
-    - Egress
+      app: filebeat              # ← label real del chart
   ingress:
-    # Prometheus: endpoint de estadísticas
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: prometheus
-      ports:
-        - port: 5066
+    # Prometheus: estadísticas 5066
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "5066"
+              protocol: TCP
   egress:
-    # Elasticsearch
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: elasticsearch
-      ports:
-        - port: 9200
+    # Elasticsearch 9200
+    - toEndpoints:
+        - matchLabels:
+            app: elasticsearch-master
+      toPorts:
+        - ports:
+            - port: "9200"
+              protocol: TCP
+    # API server: metadatos de Kubernetes (autodiscovery) — fix 3.9 del informe
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP

@@ -2,8 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - platform-tls.yaml
-  - traefik-service-monitor.yaml
+z  - traefik-service-monitor.yaml
   - traefik-ingress-from-world.yaml
   - traefik-to-argocd.yaml
   - traefik-to-jaeger.yaml
@@ -16,6 +15,7 @@ resources:
   - traefik-to-sonarqube.yaml
   - traefik-to-grafana.yaml
   - traefik-to-prometheus.yaml
+  - traefik-to-alertmanager.yaml
   - traefik-to-vault.yaml
   - traefik-to-rabbitmq.yaml
   - traefik-to-pgadmin.yaml

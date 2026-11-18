@@ -3,6 +3,10 @@ kind: Kustomization
 
 namespace: repositories
 
+resources:
+  - gitlab-postgres-es.yaml
+  - gitlab-redis-es.yaml
+
 helmCharts:
   - name: gitlab
     repo: https://charts.gitlab.io

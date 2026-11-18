@@ -8,7 +8,11 @@ global:
 
   hosts:
     domain: dev.lab
-    https: false
+    https: true   # TLS termina en Traefik (websecure); GitLab genera URLs https://
+
+  # Sin MinIO: el PoC usa storage local (Gitaly) y no almacena objetos
+  minio:
+    enabled: false
 
   ingress:
     configureCertmanager: false
@@ -52,6 +56,8 @@ global:
       enabled: false
     packages:
       enabled: false
+    artifacts:
+      enabled: false   # artifacts viene enabled:true por defecto y exige MinIO
     ci:
       incremental_logging: false
 
