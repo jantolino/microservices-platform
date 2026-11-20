@@ -19,6 +19,4 @@ resources:
     memory: 200Mi
 
 monitoring:
-  podMonitorEnabled: true
-  podMonitorAdditionalLabels:
-    release: prometheus
+  podMonitorEnabled: false
