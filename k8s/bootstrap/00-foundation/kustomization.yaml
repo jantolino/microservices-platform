@@ -17,13 +17,7 @@ resources:
   - namespaces/secrets-manager.yaml
 
   # ==========================================
-  # Storage Classes (Infraestructura de Discos)
-  # ==========================================
-  - storage-class/local-default.yaml
-  - storage-class/nfs.yaml
-
-  # ==========================================
   # Políticas de red clusterwide (Cilium)
   # ==========================================
-  - clusterwide-dns-allowlist.yaml
-  - coredns-ingress-protection.yaml
+  - network-policies/clusterwide-dns-allowlist.yaml
+  - network-policies/coredns-ingress-protection.yaml

@@ -6,6 +6,6 @@ metadata:
     storageclass.kubernetes.io/is-default-class: "true"
   labels:
     part-of: microservices-platform
-provisioner: kubernetes.io/hostpath # Genérico, te sirve en cualquier clúster local
+provisioner: k8s.io/minikube-hostpath # Addon storage-provisioner de Minikube (kubernetes.io/hostpath no aprovisiona)
 reclaimPolicy: Delete               # En local, si borras la DB, limpia el disco
 volumeBindingMode: Immediate

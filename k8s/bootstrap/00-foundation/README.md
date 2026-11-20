@@ -8,13 +8,11 @@ de namespaces, el almacenamiento y las políticas de red clusterwide (Cilium).
 | Archivo | Contenido |
 |---|---|
 | `namespaces/{argocd,cert-manager,data-services,devops-tools,headlamp,microservices,monitoring,networking,repositories,security,secrets-manager}.yaml` | Por namespace: `Namespace` (label `part-of: microservices-platform`) + `ResourceQuota` + `LimitRange` + `NetworkPolicy default-deny-all` |
-| `storage-class/local-default.yaml` | StorageClass local **marcada como default** (`storageclass.kubernetes.io/is-default-class: "true"`) |
-| `storage-class/nfs.yaml` | StorageClass `nfs` para almacenamiento compartido (requiere provisioner NFS) |
-| `clusterwide-dns-allowlist.yaml` | `CiliumClusterwideNetworkPolicy`: DNS L7 — solo se resuelve `*cluster.local` (anti-exfiltración); excepción `argocd-repo-server` en `bootstrap/02-argocd/` |
-| `coredns-ingress-protection.yaml` | `CiliumClusterwideNetworkPolicy`: CoreDNS solo acepta DNS desde namespaces `part-of: microservices-platform`, probes del kubelet y métricas de Prometheus |
+| `network-policies/clusterwide-dns-allowlist.yaml` | `CiliumClusterwideNetworkPolicy`: DNS L7 — solo se resuelve `*cluster.local` (anti-exfiltración); excepción `argocd-repo-server` en `bootstrap/02-argocd/` |
+| `network-policies/coredns-ingress-protection.yaml` | `CiliumClusterwideNetworkPolicy`: CoreDNS solo acepta DNS desde namespaces `part-of: microservices-platform`, probes del kubelet y métricas de Prometheus |
 
-> Los values de los charts usan `storageClassName: ""` (heredan la default `local-default`).
-> La StorageClass `standard` de Minikube **no se usa**.
+> Los values de los charts usan `storageClassName: ""` (heredan la default `standard` de Minikube).
+> Foundation no crea StorageClasses: en local solo se usa `standard`.
 
 ## Requisito: Cilium
 
