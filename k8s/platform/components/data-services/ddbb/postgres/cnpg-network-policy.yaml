@@ -27,6 +27,8 @@ spec:
               protocol: TCP
             - port: "6443"
               protocol: TCP
+            - port: "8443"   # API server de Minikube
+              protocol: TCP
     - toEndpoints:
         - matchLabels:
             cnpg.io/cluster: postgres
@@ -83,6 +85,8 @@ spec:
             - port: "443"
               protocol: TCP
             - port: "6443"
+              protocol: TCP
+            - port: "8443"   # API server de Minikube
               protocol: TCP
     - toEndpoints:
         - matchLabels:
