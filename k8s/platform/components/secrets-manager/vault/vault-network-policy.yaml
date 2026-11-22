@@ -59,3 +59,35 @@ spec:
             - port: "8443"
               protocol: TCP
     # 2. DNS: lo concede la CCNP dns-allowlist-clusterwide (L7); una regla L4 aquí lo anularía
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: vault-agent-injector-zero-trust
+  namespace: secrets-manager
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: vault-agent-injector
+  ingress:
+    # Webhook de mutación (API server) y probes del kubelet: contenedor 8080
+    - fromEntities:
+        - host
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP

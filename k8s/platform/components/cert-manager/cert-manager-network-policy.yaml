@@ -9,8 +9,13 @@ metadata:
     part-of: microservices-platform
 spec:
   endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: cert-manager   # cubre controller + webhook + cainjector
+    matchExpressions:
+      - key: app.kubernetes.io/name   # controller + webhook + cainjector (labels distintos en el chart)
+        operator: In
+        values:
+          - cert-manager
+          - webhook
+          - cainjector
   egress:
     - toEntities:
         - kube-apiserver
