@@ -330,6 +330,57 @@ kubectl run -it --rm test --image=busybox -n devops-tools -- nslookup redis.even
 
 **Alto consumo de recursos:** Si el clúster está saturado, reducir aún más los requests en argocd-values.yaml (por ejemplo, cpu: 50m para el servidor).
 
+### 8.5 Allowlist de dominios del repo-server (descubrimiento)
+
+El `argocd-repo-server` ejecuta `helm pull` para cada componente, y la política `argocd-repo-server-bootstrap` (`k8s/bootstrap/02-argocd/argocd-network-policy.yaml`) solo deja resolver y alcanzar los dominios listados. Cuando falta alguno, ArgoCD muestra en la app un error de este tipo:
+
+```text
+looks like "https://charts.example.io" is not a valid chart repository or cannot be reached:
+Get "https://example.io/index.yaml": dial tcp: lookup example.io on 10.96.0.10:53: server misbehaving
+```
+
+El dominio que aparece tras `lookup` es el que hay que añadir. A menudo no es el del `repo:` sino el de una **redirección** (`charts.external-secrets.io` redirige a `external-secrets.io`, `cloudnative-pg.github.io` a `cloudnative-pg.io`) o el de descarga de los `.tgz` (el chart de GitLab se descarga de `gitlab-charts.s3.amazonaws.com`).
+
+#### Script `k8s/discover-helm-domains.sh`
+
+Recorre todos los `repo:` de `k8s/platform/**/kustomization.yaml` y, para cada uno, recoge:
+
+1. El host del propio repo.
+2. Las redirecciones del `index.yaml` (cabeceras `Location`).
+3. Los hosts del campo `urls:` del `index.yaml`, que son los de descarga de los `.tgz`. Los demás enlaces del índice (`home`, `sources`, iconos) se ignoran porque no se descargan.
+
+Después compara el resultado con los `matchName` de la política y muestra los que faltan.
+
+```bash
+bash k8s/discover-helm-domains.sh
+```
+
+| Resultado | Significado |
+|-----------|-------------|
+| Código de salida `0` y `Ninguno` | La allowlist cubre todos los dominios descubiertos. |
+| Código de salida `1` y lista de dominios | Faltan esos dominios. |
+
+Requisitos y límites:
+
+- Necesita `curl` y acceso a Internet; no modifica archivos ni el clúster.
+- Solo mira los charts declarados con `repo:` en `kustomization.yaml`. Un repo con URLs relativas en `urls:` no aporta dominios nuevos porque usa el mismo host.
+- No detecta dominios de imágenes de contenedor ni tráfico propio de los pods; solo la descarga de charts por el repo-server.
+- Los `.tgz` alojados en GitHub se redirigen a `objects.githubusercontent.com` o `release-assets.githubusercontent.com`. Ambos ya están en la allowlist base y el script no los resuelve.
+- Los archivos en `/mnt/<unidad>` (WSL) pueden tener finales de línea CRLF; el script los elimina al leer.
+
+#### Añadir un dominio a la allowlist
+
+1. Añade el dominio como `matchName` en **las dos listas** de `argocd-network-policy.yaml`: `toPorts[].rules.dns` (puerto 53) y `toFQDNs` (puerto 443). Si solo está en una, la resolución o la conexión siguen bloqueadas.
+2. Aplica la política. Vive en `bootstrap/`, así que no la sincroniza ArgoCD:
+
+```bash
+kubectl apply -f k8s/bootstrap/02-argocd/argocd-network-policy.yaml
+kubectl rollout restart deploy/argocd-repo-server -n argocd
+kubectl rollout status deploy/argocd-repo-server -n argocd
+```
+
+3. En ArgoCD, usa **Hard Refresh** en la aplicación afectada. Un error que contiene `Manifest generation error (cached)` es una caché del fallo anterior; reiniciar el repo-server y hacer el refresh la limpia.
+
 ## 9. Desinstalación
 
 ### 9.1 Eliminar el release de Helm

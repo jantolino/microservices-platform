@@ -172,6 +172,7 @@ spec:
               - matchName: charts.jetstack.io
               - matchName: charts.jfrog.io
               - matchName: charts.gitlab.io
+              - matchName: gitlab-charts.s3.amazonaws.com
               - matchName: charts.jenkins.io
               - matchName: charts.bitnami.com
               - matchName: helm.runix.net
@@ -196,6 +197,7 @@ spec:
         - matchName: charts.jetstack.io
         - matchName: charts.jfrog.io
         - matchName: charts.gitlab.io
+        - matchName: gitlab-charts.s3.amazonaws.com
         - matchName: charts.jenkins.io
         - matchName: charts.bitnami.com
         - matchName: helm.runix.net
