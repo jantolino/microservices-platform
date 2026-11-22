@@ -15,5 +15,6 @@ spec:
   targetServiceAccounts:
     - external-secrets-vault
   targetNamespaces:
-    - security          # donde vive external-secrets-vault (SA del ClusterSecretStore)
-    - secrets-manager   # SAs de este ns que también usen el rol external-secrets
+    targetNamespaces:
+      - security          # donde vive external-secrets-vault (SA del ClusterSecretStore)
+      - secrets-manager   # SAs de este ns que también usen el rol external-secrets

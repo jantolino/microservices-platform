@@ -332,7 +332,7 @@ until vault secrets list | grep -q '^secret/'; do
 done
 
 # Aleatorio generado por el propio Vault (no depende de openssl en la imagen)
-rand() { vault write -field=random sys/tools/random/32 format=hex; }
+rand() { vault write -field=random_bytes sys/tools/random/32 format=hex; }
 
 # seed <path> clave=valor [clave=valor ...]: escribe todas las claves juntas si el path no existe
 seed() {
