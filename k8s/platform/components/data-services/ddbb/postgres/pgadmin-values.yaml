@@ -10,7 +10,7 @@ image:
   pullPolicy: IfNotPresent
 
 env:
-  email: "admin@desarrollo.edu"
+  email: "admin@platform.edu"
   enhanced_cookie_protection: "False"
 
 serverDefinitions:
