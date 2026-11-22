@@ -132,16 +132,48 @@ wait_for_redis_operator() {
 }
 
 # Función para verificar que Redis está listo
+#wait_for_redis_ready() {
+#    log_info "Esperando a que Redis Standalone esté listo..."
+#
+#    kubectl wait --for=condition=ready --timeout=180s -n "$NAMESPACE_DATA" pod/redis-0 2>/dev/null || {
+#        log_error "Redis no se volvió listo en el tiempo esperado."
+#        log_info "Intentando obtener información de depuración:"
+#        kubectl get pods -n "$NAMESPACE_DATA" -l app.kubernetes.io/name=redis
+#        kubectl describe pods -n "$NAMESPACE_DATA" -l app.kubernetes.io/name=redis
+#        exit 1
+#    }
+#
+#    log_success "Redis Standalone está listo."
+#}
+
 wait_for_redis_ready() {
     log_info "Esperando a que Redis Standalone esté listo..."
 
-    kubectl wait --for=condition=ready --timeout=180s -n "$NAMESPACE_DATA" pod/redis-0 2>/dev/null || {
-        log_error "Redis no se volvió listo en el tiempo esperado."
-        log_info "Intentando obtener información de depuración:"
-        kubectl get pods -n "$NAMESPACE_DATA" -l app.kubernetes.io/name=redis
-        kubectl describe pods -n "$NAMESPACE_DATA" -l app.kubernetes.io/name=redis
+    # kubectl wait falla al instante sobre un pod inexistente:
+    # primero esperar a que el operador lo cree
+    local timeout=180 elapsed=0
+    until kubectl get pod redis-0 -n "$NAMESPACE_DATA" &>/dev/null; do
+        if (( elapsed >= timeout )); then
+            log_error "El operador no creó el pod redis-0 en ${timeout}s."
+            break
+        fi
+        sleep 5
+        (( elapsed += 5 ))
+    done
+
+    if ! kubectl wait --for=condition=ready --timeout=180s -n "$NAMESPACE_DATA" pod/redis-0 2>/dev/null; then
+        log_error "Redis no se volvió listo en el tiempo esperado. Estado real:"
+        echo "--- CR Redis ---"
+        kubectl get redis -n "$NAMESPACE_DATA" 2>/dev/null || echo "CR Redis no existe (el operador no lo reconcilió o el chart no lo creó)"
+        kubectl describe redis -n "$NAMESPACE_DATA" 2>/dev/null | tail -15 || true
+        echo "--- Recursos creados ---"
+        kubectl get statefulset,pod,pvc,secret -n "$NAMESPACE_DATA"
+        echo "--- Eventos recientes ---"
+        kubectl get events -n "$NAMESPACE_DATA" --sort-by=.lastTimestamp | tail -15
+        echo "--- Logs del operador ---"
+        kubectl logs deploy/redis-operator -n "$NAMESPACE_DATA" --tail=40 || true
         exit 1
-    }
+    fi
 
     log_success "Redis Standalone está listo."
 }

@@ -158,7 +158,7 @@ spec:
               protocol: ANY
           rules:
             dns:
-              - matchPattern: "*.cluster.local"
+              - matchPattern: "**.cluster.local"
               - matchName: github.com
               - matchName: objects.githubusercontent.com
               - matchName: release-assets.githubusercontent.com

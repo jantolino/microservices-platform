@@ -12,10 +12,11 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: redis-operator
+      name: redis-operator
   egress:
     - toEntities:
         - kube-apiserver
+        - host
       toPorts:
         - ports:
             - port: "443"
@@ -58,7 +59,7 @@ spec:
             k8s:io.kubernetes.pod.namespace: argocd
             app.kubernetes.io/name: argocd-application-controller
         - matchLabels:
-            app.kubernetes.io/name: redis-operator
+            name: redis-operator
       toPorts:
         - ports:
             - port: "6379"
