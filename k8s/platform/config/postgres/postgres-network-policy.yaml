@@ -40,17 +40,7 @@ spec:
               app.kubernetes.io/name: artifactory
       ports:
         - port: 5432
-    # 4. pgadmin (Mismo namespace, necesita acceso a la base de datos)
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: data-services
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: pgadmin4 # La etiqueta que le da el chart de Runix
-      ports:
-        - port: 5432
-    # 5. Prometheus (métricas del exporter de CNPG)
+    # 4. Prometheus (métricas del exporter de CNPG)
     - from:
         - namespaceSelector:
             matchLabels:

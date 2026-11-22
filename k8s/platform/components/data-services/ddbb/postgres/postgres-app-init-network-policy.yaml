@@ -1,4 +1,4 @@
-apiVersion: cilium.io/v2
+zapiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: postgres-app-init-egress

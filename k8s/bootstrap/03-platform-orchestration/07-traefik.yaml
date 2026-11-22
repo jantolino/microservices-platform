@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: prometheus-stack
+  name: traefik
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "7"
@@ -12,10 +12,10 @@ spec:
   source:
     repoURL: https://github.com/jantolino/microservices-platform.git
     targetRevision: HEAD
-    path: k8s/platform/components/monitoring/prometheus-stack
+    path: k8s/platform/components/networking/traefik
   destination:
     server: https://kubernetes.default.svc
-    namespace: monitoring
+    namespace: networking
   syncPolicy:
     automated:
       prune: true
