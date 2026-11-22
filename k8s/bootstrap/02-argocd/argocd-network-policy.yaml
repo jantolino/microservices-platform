@@ -176,6 +176,8 @@ spec:
               - matchName: charts.bitnami.com
               - matchName: helm.runix.net
               - matchName: charts.external-secrets.io
+              - matchName: external-secrets.io
+              - matchName: cloudnative-pg.github.io
               - matchName: helm.elastic.co
               - matchName: helm.releases.hashicorp.com
     # Allowlist externa (1.2f): GitHub + repos Helm de k8s/platform/components/*/kustomization.yaml
@@ -197,6 +199,8 @@ spec:
         - matchName: charts.bitnami.com
         - matchName: helm.runix.net
         - matchName: charts.external-secrets.io
+        - matchName: external-secrets.io
+        - matchName: cloudnative-pg.github.io
         - matchName: helm.elastic.co
         - matchName: helm.releases.hashicorp.com
       toPorts:
