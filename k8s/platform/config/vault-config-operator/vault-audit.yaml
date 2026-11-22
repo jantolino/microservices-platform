@@ -1,7 +1,7 @@
 # Auditoría de Vault: registra toda operación (lecturas, escrituras, logins) en /vault/audit/audit.log
 # (PVC server.auditStorage del chart). Vault es fail-closed: si no puede escribir el audit, rechaza peticiones.
 apiVersion: redhatcop.redhat.io/v1alpha1
-kind: VaultAudit
+kind: Audit
 metadata:
   name: platform-audit
   namespace: secrets-manager
@@ -13,6 +13,7 @@ spec:
     role: vault-config-operator
     serviceAccount:
       name: default
+  path: file
   type: file
-  configuration:
+  options:
     file_path: /vault/audit/audit.log

@@ -7,6 +7,9 @@ crds:
 
 fullnameOverride: cert-manager-v1-18-2
 
+startupapicheck:
+  enabled: false
+
 resources:
   requests:
     cpu: 100m
