@@ -1,0 +1,23 @@
+# Egress de pgAdmin hacia el cluster PostgreSQL.
+# pgAdmin es cliente interno del componente (se despliega en este mismo kustomization):
+# su conectividad a postgres-rw:5432 va aquí, no en config/postgres (consumidores externos).
+# Sin esta regla, default-deny-all del namespace descarta el SYN a postgres-rw:5432.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pgadmin-egress-postgres
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: pgadmin4 # Etiqueta que da el chart de Runix al pod
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: postgres
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP

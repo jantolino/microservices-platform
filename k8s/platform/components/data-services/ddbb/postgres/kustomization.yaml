@@ -9,6 +9,7 @@ resources:
   - app-roles-es.yaml
   - postgres-app-init-job.yaml
   - postgres-app-init-network-policy.yaml
+  - pgadmin-network-policy.yaml
   - cnpg-network-policy.yaml
 
 patches:

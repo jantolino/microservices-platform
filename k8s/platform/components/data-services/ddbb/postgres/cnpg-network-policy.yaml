@@ -1,5 +1,6 @@
 # Mínimo de arranque de CloudNativePG (operador + instancias). DNS lo cubre Foundation.
-# El ingreso de consumidores (GitLab, SonarQube, Artifactory, pgAdmin) va en k8s/platform/config/postgres/.
+# El ingreso de consumidores EXTERNOS (GitLab, SonarQube, Artifactory) va en k8s/platform/config/postgres/.
+# Los clientes internos del componente (job init, pgAdmin) se gestionan aquí mismo.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -73,6 +74,14 @@ spec:
     - fromEndpoints:
         - matchLabels:
             app: postgres-app-init
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # pgAdmin (cliente interno del componente, mismo kustomization)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: pgadmin4
       toPorts:
         - ports:
             - port: "5432"
