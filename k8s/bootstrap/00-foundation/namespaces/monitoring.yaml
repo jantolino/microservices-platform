@@ -15,14 +15,17 @@ metadata:
 spec:
   hard:
 
-    requests.cpu: "1500m"
+    requests.cpu: "2000m"
     requests.memory: "3.5Gi"
     
     # --- PICOS MÁXIMOS (Burst Protection / Undercommit) ---
     # monitoring aloja Prometheus, Grafana, ELK, Jaeger - stack de observabilidad completo.
     # Permitimos burst generoso ya que estos servicios pueden tener picos de ingesta.
-    limits.cpu: "1600m"
-    limits.memory: "3.8Gi"
+    # kube-prometheus-stack con resources explícitos suma ~1.5CPU/2.9Gi de límites;
+    # el margen cubre el surge de un rolling update (Deployments nuevos + antiguos).
+    # Cuando lleguen ELK/Jaeger habrá que revisar esta quota.
+    limits.cpu: "2500m"
+    limits.memory: "4.5Gi"
 
     pods: "25"
 ---
