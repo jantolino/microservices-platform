@@ -5,6 +5,7 @@ namespace: monitoring
 
 resources:
   - grafana-es.yaml
+  - prometheus-stack-network-policy.yaml
 
 helmCharts:
   - name: kube-prometheus-stack

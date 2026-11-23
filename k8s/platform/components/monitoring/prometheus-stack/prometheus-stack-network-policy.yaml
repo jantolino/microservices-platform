@@ -1,0 +1,96 @@
+# Red mínima de arranque del chart kube-prometheus-stack 84.5.0 (releaseName prometheus).
+# DNS lo concede la CCNP dns-allowlist-clusterwide (L7); una regla L4 aquí lo anularía.
+# Los scrapes, las UIs (Traefik) y los datasources se añaden en k8s/platform/config/prometheus-stack/.
+# 1. Jobs admission-create/patch: hooks PreSync/PostSync de Argo CD, que se ejecutan antes de aplicar
+#    el resto de recursos; su netpol también es PreSync (wave anterior). Se seleccionan por "app"
+#    porque comparten app.kubernetes.io/name con el operador.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus-admission-jobs
+  namespace: monitoring
+  labels:
+    part-of: microservices-platform
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - kube-prometheus-stack-admission-create
+          - kube-prometheus-stack-admission-patch
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+---
+# 2. Operador: reconcilia vía API server y recibe su webhook de admisión (10250), que valida
+#    las PrometheusRule por defecto del chart durante el sync.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus-operator
+  namespace: monitoring
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app: kube-prometheus-stack-operator
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+---
+# 3. kube-state-metrics y Grafana (sidecars de dashboards/datasources): consultan el API server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus-apiserver-clients
+  namespace: monitoring
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - kube-state-metrics
+          - grafana
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
