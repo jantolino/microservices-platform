@@ -1,0 +1,31 @@
+# Patch de los Jobs de admission (PreSync/PostSync hooks) de kube-prometheus-stack.
+#
+# Problema: el chart los anota con 'helm.sh/hook-delete-policy' incluyendo
+# 'hook-succeeded'. Argo CD los borra nada mas completar — antes de leer su
+# estado — y los marca 'missing' -> SyncFailed -> retry -> Job nuevo -> se borra
+# -> bucle infinito de sincronizacion.
+#
+# Con 'before-hook-creation' el Job sobrevive tras completar: Argo lee su estado
+# Complete y el sync continua. El Job se limpia al ejecutarse el siguiente hook.
+# Ademas se elimina 'ttlSecondsAfterFinished: 60' del chart: el kubelet tambien
+# borraba el Job 60s tras completar, abriendo otra ventana para el 'missing'.
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: prometheus-kube-prometheus-admission-create
+  namespace: monitoring
+  annotations:
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  ttlSecondsAfterFinished: null
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: prometheus-kube-prometheus-admission-patch
+  namespace: monitoring
+  annotations:
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  ttlSecondsAfterFinished: null

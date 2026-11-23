@@ -15,3 +15,10 @@ helmCharts:
     namespace: monitoring
     valuesFile: prometheus-stack-values.yaml
     includeCRDs: true
+
+# Los Jobs de admission son hooks helm con 'hook-succeeded' en su delete-policy:
+# Argo los borra nada mas completar y, al re-evaluar el recurso, lo marca
+# 'missing' -> SyncFailed -> retry -> nuevo Job -> se borra -> bucle infinito.
+# Con 'before-hook-creation' el Job sobrevive y Argo puede leer su estado Complete.
+patches:
+  - path: prometheus-stack-admission-hook-patch.yaml
