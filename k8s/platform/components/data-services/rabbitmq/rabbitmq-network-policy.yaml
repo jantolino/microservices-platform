@@ -1,0 +1,85 @@
+# Bootstrap mínimo de RabbitMQ (operador + instancias). DNS lo cubre Foundation.
+# Gestión del cluster (operador -> 15672), consumidores AMQP y métricas van en config/rabbitmq/.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rabbitmq-operator-bootstrap
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq-cluster-operator
+  ingress:
+    # Probes /healthz y /readyz del kubelet (entidad host)
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"   # API server de Minikube
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rabbitmq-server-bootstrap
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq # Label que el operador pone a los pods del RabbitmqCluster
+  ingress:
+    # Readiness del kubelet (tcpSocket sobre AMQP)
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "5672"
+              protocol: TCP
+            - port: "15672"
+              protocol: TCP
+    # Clustering entre miembros (epmd + clustering)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: rabbitmq
+      toPorts:
+        - ports:
+            - port: "4369"
+              protocol: TCP
+            - port: "25672"
+              protocol: TCP
+  egress:
+    # Peer discovery: el plugin k8s consulta Endpoints del API
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"   # API server de Minikube
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: rabbitmq
+      toPorts:
+        - ports:
+            - port: "4369"
+              protocol: TCP
+            - port: "25672"
+              protocol: TCP

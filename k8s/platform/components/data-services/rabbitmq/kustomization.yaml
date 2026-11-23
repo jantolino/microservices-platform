@@ -6,3 +6,4 @@ namespace: data-services
 resources:
   - cluster-operator.yml       # Operador RabbitMQ (ClusterRole, Deployment, etc.)
   - rabbitmq-cluster.yaml      # Definición del clúster RabbitMQ (Custom Resource)
+  - rabbitmq-network-policy.yaml  # Bootstrap: egress al API + probes del kubelet
