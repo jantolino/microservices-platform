@@ -16,7 +16,6 @@ spec:
       cpu: 500m      # Reducir de 2000m a 500m
       memory: 1Gi
   persistence:
-    storageClassName: ""
     storage: 5Gi
   rabbitmq:
     # Sin default_user/default_pass: el operador genera credenciales aleatorias
