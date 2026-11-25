@@ -4,10 +4,10 @@ metadata:
   name: vault-config
   namespace: argocd
   labels:
-    app.kubernetes.io/part-of: microservices-platform
+    platform.dev/part-of: microservices-platform
     platform.dev/wave: "04"
     platform.dev/stage: config
-    platform.dev/component: vault-config
+    platform.dev/group: secrets-manager
   annotations:
     argocd.argoproj.io/sync-wave: "4"
   finalizers:

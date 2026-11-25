@@ -70,10 +70,6 @@ nginx-ingress:
 registry:
   enabled: false
 
-# Sin MinIO: el PoC usa storage local (Gitaly) y no almacena objetos
-minio:
-  enabled: false
-
 prometheus:
   install: false
 

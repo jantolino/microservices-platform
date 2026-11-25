@@ -4,10 +4,10 @@ metadata:
   name: config-postgres
   namespace: argocd
   labels:
-    app.kubernetes.io/part-of: microservices-platform
+    platform.dev/part-of: microservices-platform
     platform.dev/wave: "26"
     platform.dev/stage: config
-    platform.dev/component: postgres
+    platform.dev/group: data-services
   annotations:
     argocd.argoproj.io/sync-wave: "26"
   finalizers:

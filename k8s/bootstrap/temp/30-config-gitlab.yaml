@@ -4,10 +4,10 @@ metadata:
   name: config-gitlab
   namespace: argocd
   labels:
-    app.kubernetes.io/part-of: microservices-platform
+    platform.dev/part-of: microservices-platform
     platform.dev/wave: "30"
     platform.dev/stage: config
-    platform.dev/component: gitlab
+    platform.dev/group: repositories
   annotations:
     argocd.argoproj.io/sync-wave: "30"
   finalizers:

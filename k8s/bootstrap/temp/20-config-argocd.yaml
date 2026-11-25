@@ -4,10 +4,10 @@ metadata:
   name: config-argocd
   namespace: argocd
   labels:
-    app.kubernetes.io/part-of: microservices-platform
+    platform.dev/part-of: microservices-platform
     platform.dev/wave: "20"
     platform.dev/stage: config
-    platform.dev/component: argocd
+    platform.dev/group: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "20"
   finalizers:

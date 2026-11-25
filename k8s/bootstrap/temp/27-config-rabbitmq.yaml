@@ -4,10 +4,10 @@ metadata:
   name: config-rabbitmq
   namespace: argocd
   labels:
-    app.kubernetes.io/part-of: microservices-platform
+    platform.dev/part-of: microservices-platform
     platform.dev/wave: "27"
     platform.dev/stage: config
-    platform.dev/component: rabbitmq
+    platform.dev/group: data-services
   annotations:
     argocd.argoproj.io/sync-wave: "27"
   finalizers:
