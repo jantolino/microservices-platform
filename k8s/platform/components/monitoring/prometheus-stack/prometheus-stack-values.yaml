@@ -97,9 +97,10 @@ kube-state-metrics:
 
 prometheus-node-exporter:
   resources:
+    # request.memory >= 64Mi: minimo por contenedor del LimitRange del namespace
     requests:
       cpu: 50m
-      memory: 32Mi
+      memory: 64Mi
     limits:
       cpu: 100m
       memory: 128Mi
