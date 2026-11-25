@@ -6,6 +6,28 @@ labels:
 prometheus:
   enabled: true
   prometheusSpec:
+    # RECURSOS EXPLÍCITOS (aplica a todos los bloques 'resources' de este archivo):
+    #
+    # El chart no define resources en ningún contenedor, así que cada uno hereda el
+    # 'default' del LimitRange del namespace (500m/1Gi) y agota la quota de 'monitoring'.
+    #
+    # NO se dimensiona vía LimitRange porque:
+    #   - Su 'default' es un valor único para TODO contenedor sin resources: no distingue
+    #     prometheus (1Gi) de un sidecar (128Mi).
+    #   - Es una red de seguridad compartida del namespace, no el contrato de sizing de
+    #     este componente.
+    #   - El sizing explícito es determinista frente a cambios futuros del LimitRange.
+    #
+    # Convención del proyecto: el sizing vive con el componente. En foundation solo se
+    # ajusta la ResourceQuota (techo agregado del namespace).
+    # Claves validadas contra kube-prometheus-stack 84.5.0.
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 300m
+        memory: 1Gi
 
     # Retención de datos: cuánto tiempo se guardan las métricas antes de borrarse
     retention: 10d
@@ -23,9 +45,86 @@ prometheus:
             requests:
               storage: 10Gi
 
+# 2. Operador, reloader y Jobs del admission hook
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  # Config-reloader inyectado en los pods de Prometheus/Alertmanager
+  prometheusConfigReloader:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+  admissionWebhooks:
+    # Jobs admission-create/patch: sin resources heredarían 500m/1Gi del LimitRange
+    patch:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+
+# 3. Alertmanager (1 réplica: lab; cada réplica duplica el consumo de la quota)
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 400Mi
+
+# 3b. Subcharts de métricas (sin resources en el chart padre)
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
 # 4. Configuración de Grafana
 grafana:
   enabled: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Aplica a los sidecars de dashboards y datasources
+  sidecar:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
 
   # Credenciales desde Secret generado por ESO (config/prometheus-stack/grafana-es.yaml)
   admin:
