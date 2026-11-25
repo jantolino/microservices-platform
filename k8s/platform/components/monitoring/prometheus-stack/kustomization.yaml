@@ -20,5 +20,5 @@ helmCharts:
 # Argo los borra nada mas completar y, al re-evaluar el recurso, lo marca
 # 'missing' -> SyncFailed -> retry -> nuevo Job -> se borra -> bucle infinito.
 # Con 'before-hook-creation' el Job sobrevive y Argo puede leer su estado Complete.
-#patches:
-#  - path: prometheus-stack-admission-hook-patch.yaml
+patches:
+  - path: prometheus-stack-admission-hook-patch.yaml
