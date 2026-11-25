@@ -6,6 +6,7 @@ namespace: repositories
 resources:
   - gitlab-postgres-es.yaml
   - gitlab-redis-es.yaml
+  - gitlab-network-policy.yaml
 
 helmCharts:
   - name: gitlab

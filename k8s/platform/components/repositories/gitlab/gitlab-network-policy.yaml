@@ -1,0 +1,89 @@
+# Mínimo de arranque del chart gitlab 9.11.2 (releaseName gitlab). Requiere Cilium.
+# DNS lo concede la CCNP dns-allowlist-clusterwide (L7); una regla L4 aquí la anularía.
+# El selector app.kubernetes.io/instance=gitlab cubre todos los subcharts del release
+# (webservice, sidekiq, gitaly, gitlab-shell y los Jobs hook shared-secrets/migrations).
+# Traefik (UI/API git), scrape de Prometheus y consumidores externos van en
+# k8s/platform/config/gitlab/; el ingreso lado servidor va en config/postgres y config/redis.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: gitlab-bootstrap
+  namespace: repositories
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: gitlab
+  ingress:
+    # Probes del kubelet: webservice/workhorse 8181 y 8080, gitaly 8075, gitlab-shell 2222
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "8181"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
+            - port: "8075"
+              protocol: TCP
+            - port: "2222"
+              protocol: TCP
+    # Tráfico interno del chart:
+    #   webservice/sidekiq/shell/migrations -> gitaly (gRPC 8075)
+    #   gitlab-shell -> webservice internal API (8181)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: gitlab
+      toPorts:
+        - ports:
+            - port: "8181"
+              protocol: TCP
+            - port: "8075"
+              protocol: TCP
+            - port: "2222"
+              protocol: TCP
+  egress:
+    # Job hook shared-secrets usa kubectl contra el API server
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+    # Tráfico interno del chart (mismo selector)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: gitlab
+      toPorts:
+        - ports:
+            - port: "8181"
+              protocol: TCP
+            - port: "8075"
+              protocol: TCP
+            - port: "2222"
+              protocol: TCP
+    # Postgres externo (CloudNativePG) — dependencia de arranque: migrations,
+    # webservice y sidekiq no levantan sin la base de datos
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: data-services
+            cnpg.io/cluster: postgres
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Redis externo (standalone) — dependencia de arranque de webservice/sidekiq
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: data-services
+            app: redis
+            redis_setup_type: standalone
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
