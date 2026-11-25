@@ -1,10 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: platform-tls
+  name: traefik
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: microservices-platform
+    platform.dev/wave: "07"
+    platform.dev/stage: component
+    platform.dev/component: traefik
   annotations:
-    argocd.argoproj.io/sync-wave: "19"
+    argocd.argoproj.io/sync-wave: "7"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -12,9 +17,10 @@ spec:
   source:
     repoURL: https://github.com/jantolino/microservices-platform.git
     targetRevision: HEAD
-    path: k8s/platform/config/platform-tls
+    path: k8s/platform/components/networking/traefik
   destination:
     server: https://kubernetes.default.svc
+    namespace: networking
   syncPolicy:
     automated:
       prune: true

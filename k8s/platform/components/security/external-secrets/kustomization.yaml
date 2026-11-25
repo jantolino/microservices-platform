@@ -3,6 +3,12 @@ kind: Kustomization
 
 namespace: security
 
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: external-secrets
+    includeSelectors: false
+
 resources:
   - external-secret-network-policy.yaml
 

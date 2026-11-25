@@ -3,6 +3,11 @@ kind: Application
 metadata:
   name: postgres
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: microservices-platform
+    platform.dev/wave: "08"
+    platform.dev/stage: component
+    platform.dev/component: postgres
   annotations:
     argocd.argoproj.io/sync-wave: "8"
   finalizers:

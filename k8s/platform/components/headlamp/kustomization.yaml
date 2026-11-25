@@ -3,6 +3,12 @@ kind: Kustomization
 
 namespace: headlamp
 
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: headlamp
+    includeSelectors: false
+
 resources:
   - headlamp-network-policy.yaml
 

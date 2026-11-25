@@ -3,6 +3,12 @@ kind: Kustomization
 
 namespace: data-services
 
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: rabbitmq
+    includeSelectors: false
+
 resources:
   - cluster-operator.yml       # Operador RabbitMQ (ClusterRole, Deployment, etc.)
   - rabbitmq-cluster.yaml      # Definición del clúster RabbitMQ (Custom Resource)

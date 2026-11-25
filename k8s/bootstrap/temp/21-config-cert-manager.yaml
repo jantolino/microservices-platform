@@ -3,6 +3,11 @@ kind: Application
 metadata:
   name: config-cert-manager
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: microservices-platform
+    platform.dev/wave: "21"
+    platform.dev/stage: config
+    platform.dev/component: cert-manager
   annotations:
     argocd.argoproj.io/sync-wave: "21"
   finalizers:

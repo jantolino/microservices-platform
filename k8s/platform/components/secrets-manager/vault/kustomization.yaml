@@ -3,6 +3,12 @@ kind: Kustomization
 
 namespace: secrets-manager
 
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: vault
+    includeSelectors: false
+
 resources:
   - vault-network-policy.yaml
   - vault-auth-delegator.yaml

@@ -3,6 +3,12 @@ kind: Kustomization
 
 namespace: cert-manager
 
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: cert-manager
+    includeSelectors: false
+
 resources:
   - cert-manager-network-policy.yaml
 

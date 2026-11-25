@@ -3,6 +3,12 @@ kind: Kustomization
 
 namespace: monitoring
 
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: jaeger
+    includeSelectors: false
+
 helmCharts:
   - name: jaeger
     repo: https://jaegertracing.github.io/helm-charts

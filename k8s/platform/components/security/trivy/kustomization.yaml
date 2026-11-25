@@ -3,6 +3,12 @@ kind: Kustomization
 
 namespace: security
 
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: trivy
+    includeSelectors: false
+
 helmCharts:
   - name: trivy-operator
     repo: https://aquasecurity.github.io/helm-charts

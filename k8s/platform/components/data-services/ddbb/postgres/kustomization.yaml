@@ -3,6 +3,12 @@ kind: Kustomization
 
 namespace: data-services
 
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: postgres
+    includeSelectors: false
+
 resources:
   - postgres-es.yaml
   - pgadmin-es.yaml

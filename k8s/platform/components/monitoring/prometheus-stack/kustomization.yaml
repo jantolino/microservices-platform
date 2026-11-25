@@ -3,6 +3,12 @@ kind: Kustomization
 
 namespace: monitoring
 
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: prometheus-stack
+    includeSelectors: false
+
 resources:
   - grafana-es.yaml
   - prometheus-stack-network-policy.yaml

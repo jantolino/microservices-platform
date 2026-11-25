@@ -3,6 +3,12 @@ kind: Kustomization
 
 namespace: networking
 
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: traefik
+    includeSelectors: false
+
 resources:
   - traefik-network-policy.yaml
 

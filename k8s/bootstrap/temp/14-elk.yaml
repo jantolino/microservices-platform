@@ -3,6 +3,11 @@ kind: Application
 metadata:
   name: elk
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: microservices-platform
+    platform.dev/wave: "14"
+    platform.dev/stage: component
+    platform.dev/component: elk
   annotations:
     argocd.argoproj.io/sync-wave: "14"
   finalizers:

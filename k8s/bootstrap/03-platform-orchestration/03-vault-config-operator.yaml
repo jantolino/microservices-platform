@@ -3,6 +3,11 @@ kind: Application
 metadata:
   name: vault-config-operator
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: microservices-platform
+    platform.dev/wave: "03"
+    platform.dev/stage: component
+    platform.dev/component: vault-config-operator
   annotations:
     argocd.argoproj.io/sync-wave: "3"
   finalizers:
