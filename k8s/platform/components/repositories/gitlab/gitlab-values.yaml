@@ -82,6 +82,13 @@ gitlab-runner:
 postgresql:
   install: false
 
+# Hook pre-upgrade del chart: ArgoCD lo ejecuta como PreSync en el primer
+# install, antes de aplicar ExternalSecrets/CiliumNetworkPolicy del propio
+# Application -> el job no encuentra los secrets y el egress está denegado
+# (default-deny-all), quedando en bucle de reintentos (argo-cd#7536).
+upgradeCheck:
+  enabled: false
+
 webservice:
   logLevel: debug
   replicas: 1
