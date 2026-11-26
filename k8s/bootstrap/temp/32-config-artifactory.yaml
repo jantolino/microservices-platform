@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: config-external-secrets
+  name: config-artifactory
   namespace: argocd
   labels:
     platform.dev/part-of: microservices-platform
-    platform.dev/wave: "22"
+    platform.dev/wave: "32"
     platform.dev/stage: config
-    platform.dev/group: security
+    platform.dev/group: devops-tools
   annotations:
-    argocd.argoproj.io/sync-wave: "22"
+    argocd.argoproj.io/sync-wave: "32"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -17,10 +17,10 @@ spec:
   source:
     repoURL: https://github.com/jantolino/microservices-platform.git
     targetRevision: HEAD
-    path: k8s/platform/config/external-secrets
+    path: k8s/platform/config/artifactory
   destination:
     server: https://kubernetes.default.svc
-    namespace: security
+    namespace: devops-tools
   syncPolicy:
     automated:
       prune: true

@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Pre-sync (wave 18): prerequisitos que los Helm hooks del chart gitlab
+# (shared-secrets, migrations) necesitan ANTES de que el Application
+# 'gitlab' (wave 19) sincronice:
+#   - ExternalSecrets -> materializan gitlab-postgres-password / gitlab-redis-auth
+#   - CiliumNetworkPolicy -> egress a API server, postgres y redis
+resources:
+  - gitlab-postgres-es.yaml
+  - gitlab-redis-es.yaml
+  - gitlab-network-policy.yaml

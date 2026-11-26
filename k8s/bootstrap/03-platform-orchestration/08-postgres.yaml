@@ -9,7 +9,7 @@ metadata:
     platform.dev/stage: component
     platform.dev/group: data-services
   annotations:
-    argocd.argoproj.io/sync-wave: "8"
+    argocd.argoproj.io/sync-wave: "08"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

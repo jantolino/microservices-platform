@@ -5,11 +5,11 @@ metadata:
   namespace: argocd
   labels:
     platform.dev/part-of: microservices-platform
-    platform.dev/wave: "00"
+    platform.dev/wave: "-6"
     platform.dev/stage: component
     platform.dev/group: cert-manager
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "-6"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

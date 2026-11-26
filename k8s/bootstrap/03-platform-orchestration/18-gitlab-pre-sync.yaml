@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: config-redis
+  name: gitlab-pre-sync
   namespace: argocd
   labels:
     platform.dev/part-of: microservices-platform
-    platform.dev/wave: "28"
+    platform.dev/wave: "18"
     platform.dev/stage: config
-    platform.dev/group: data-services
+    platform.dev/group: repositories
   annotations:
-    argocd.argoproj.io/sync-wave: "28"
+    argocd.argoproj.io/sync-wave: "18"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -17,10 +17,10 @@ spec:
   source:
     repoURL: https://github.com/jantolino/microservices-platform.git
     targetRevision: HEAD
-    path: k8s/platform/config/redis
+    path: k8s/platform/config/gitlab/pre-sync
   destination:
     server: https://kubernetes.default.svc
-    namespace: data-services
+    namespace: repositories
   syncPolicy:
     automated:
       prune: true
