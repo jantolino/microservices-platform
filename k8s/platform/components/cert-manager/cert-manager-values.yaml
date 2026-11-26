@@ -5,7 +5,7 @@ global:
 crds:
   enabled: true
 
-fullnameOverride: cert-manager-v1-18-2
+fullnameOverride: cert-manager
 
 startupapicheck:
   enabled: false

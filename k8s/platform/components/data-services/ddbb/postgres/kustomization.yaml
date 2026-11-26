@@ -49,6 +49,6 @@ helmCharts:
   - name: pgadmin4
     repo: https://helm.runix.net
     version: 1.62.0
-    releaseName: pgadmin4-v1-62-0
+    releaseName: pgadmin4
     namespace: data-services
     valuesFile: pgadmin-values.yaml

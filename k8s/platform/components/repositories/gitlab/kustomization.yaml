@@ -9,11 +9,6 @@ labels:
       platform.dev/component: gitlab
     includeSelectors: false
 
-resources:
-  - gitlab-postgres-es.yaml
-  - gitlab-redis-es.yaml
-  - gitlab-network-policy.yaml
-
 helmCharts:
   - name: gitlab
     repo: https://charts.gitlab.io

@@ -1,7 +1,7 @@
 commonLabels:
   part-of: microservices-platform
 
-# Nombre estable de recursos (Service/Deployment "pgadmin" en vez de "pgadmin4-v1-62-0")
+# Nombre estable de recursos (Service/Deployment "pgadmin" en vez de "pgadmin4")
 fullnameOverride: pgadmin
 
 image:

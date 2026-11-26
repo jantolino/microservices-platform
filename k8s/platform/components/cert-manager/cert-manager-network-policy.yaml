@@ -1,4 +1,4 @@
-# Puertos verificados contra el chart cert-manager 1.18.2 (releaseName cert-manager-v1-18-2):
+# Puertos verificados contra el chart cert-manager 1.18.2 (releaseName cert-manager):
 # webhook: contenedor 6443 (securePort, Service 443->https), health 6080; controller: healthz 8080; todos: metrics 9402.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
