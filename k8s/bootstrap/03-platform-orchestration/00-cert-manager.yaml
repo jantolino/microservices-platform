@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   labels:
     platform.dev/part-of: microservices-platform
-    platform.dev/wave: "-6"
+    platform.dev/wave: "n6"
     platform.dev/stage: component
     platform.dev/group: cert-manager
   annotations:
