@@ -1,0 +1,7 @@
+# Anotaciones de ArgoCD para el CR Redis: se crea después del operador (wave 1)
+# y sin dry-run previo, porque el CRD llega en el mismo sync.
+- op: add
+  path: /metadata/annotations
+  value:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true

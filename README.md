@@ -146,7 +146,6 @@ graph TB
         RabbitMQ -->|mensajes asíncronos| ArgoCD
         Redis -->|caché| GitLab
         Redis -->|caché| Jenkins
-        Redis -->|caché| ArgoCD
     end
 
     %% Estilos

@@ -56,14 +56,6 @@ repo-server:
       cpu: 200m
       memory: 384Mi
 
-externalRedis:
-  # -- External Redis server host
-  host: redis.data-services.svc.cluster.local
-  # -- External Redis server port
-  port: 6379
-  # Secret generado por bootstrap.sh con la clave `redis-password`
-  existingSecret: argocd-redis-auth
-
 # Si no necesitas notificaciones, también podemos desactivarlas
 notifications:
   enabled: false
@@ -71,5 +63,14 @@ notifications:
 dex:
   enabled: false
 
+# Redis embebido del chart: solo lo consume ArgoCD (cache/queues efímeros).
+# El password lo genera el Job argocd-redis-secret-init del propio chart.
 redis:
-  enabled: false
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

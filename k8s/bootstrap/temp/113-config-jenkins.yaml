@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: config-argocd
+  name: config-jenkins
   namespace: argocd
   labels:
     platform.dev/part-of: microservices-platform
-    platform.dev/wave: "21"
+    platform.dev/wave: "113"
     platform.dev/stage: config
-    platform.dev/group: argocd
+    platform.dev/group: devops-tools
   annotations:
-    argocd.argoproj.io/sync-wave: "21"
+    argocd.argoproj.io/sync-wave: "113"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -17,10 +17,10 @@ spec:
   source:
     repoURL: https://github.com/jantolino/microservices-platform.git
     targetRevision: HEAD
-    path: k8s/platform/config/argocd
+    path: k8s/platform/config/jenkins
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: devops-tools
   syncPolicy:
     automated:
       prune: true

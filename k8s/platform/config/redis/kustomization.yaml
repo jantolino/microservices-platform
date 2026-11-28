@@ -3,5 +3,3 @@ kind: Kustomization
 
 resources:
   - redis-service-monitor.yaml
-  - redis-push-secret.yaml
-  - redis-from-gitlab.yaml

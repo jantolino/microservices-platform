@@ -132,8 +132,8 @@ k8s/
 ├── security/
 │   ├── trivy/                       # Trivy Operator
 │   └── vault/                       # Vault
-├── event-management/                # Servicios de datos
-│   ├── redis/                       # Redis standalone (ot-helm/redis)
+├── data-services/                   # Servicios de datos
+│   ├── redis/                       # Redis standalone compartido (ot-helm, Application wave 06)
 │   ├── rabbitmq/                    # RabbitMQ Cluster Operator
 │   └── ddbb/                        # PostgreSQL
 ├── devops-tools/                    # Herramientas para DevOps
@@ -172,7 +172,7 @@ El orden respeta las dependencias entre componentes (base de datos, Redis, Ingre
 > **Importante:** El PostgreSQL externo debe estar operativo antes de instalar GitLab, Artifactory y SonarQube.
 
 - **PostgreSQL externo** – Consultar `devops-tools/ddbb/README.md`.
-- **Redis (standalone)** – Consultar `event-management/redis/README.md`.
+- **Redis (standalone)** – Consultar `../docs/components/redis.md`.
 - **RabbitMQ (Cluster Operator)** – Consultar `event-management/rabbitmq/README.md`.
 
 ### 4.5 Fase 5: Ingress (Traefik)
@@ -204,13 +204,13 @@ El orden respeta las dependencias entre componentes (base de datos, Redis, Ingre
 | Jaeger                | monitoring       | Helm chart jaeger-4.6.0                         | Almacenamiento en Elasticsearch, OTLP receiver, ServiceMonitor                                                | 
 | Vault                 | security         | Helm chart vault-0.32.0                         | UI habilitada, persistencia 10Gi, modo dev (sin TLS)                                                          | 
 | Trivy Operator        | security         | Helm chart trivy-operator-0.32.1                | Escaneo de vulnerabilidades, excluye kube-system, severidad HIGH/CRITICAL                                     | 
-| Redis                 | event-management | Helm chart redis-0.16.9                         | Standalone, sin auth, PVC 3Gi, recursos 100m/256Mi                                                            | 
+| Redis                 | data-services    | Charts ot-helm redis-operator-0.27.0 + redis-0.16.9 (ArgoCD, wave 06) | Standalone con auth desde Vault (`redis-auth`), PVC 3Gi, recursos 100m/256Mi                        | 
 | RabbitMQ              | event-management | Cluster Operator y Cluster                      | 1 réplica (desarrollo), imagen management, PVC 10Gi                                                           | 
 | PostgreSQL            | devops-tools     | Helm chart postgresql-18.5.15 y pgadmin4-1.62.0 | PVC 10Gi, bases de datos para (gitlabhq_production, sonarqube, artifactory)                                   | 
 | GitLab                | devops-tools     | Helm chart gitlab-9.10.1                        | CE, Redis externo, PostgreSQL externo, recursos reducidos (100m CPU)                                          | 
 | Jenkins               | devops-tools     | Helm chart jenkins-5.9.12                       | StatefulSet con init container corregido (cp -n), PVC 10Gi, plugins preinstalados (gitlab, docker-workflow)   | 
 | JFrog Artifactory OSS | devops-tools     | Helm chart artifactory-oss-107.133.17           | PostgreSQL externo, credenciales admin/password, recursos 500m/2Gi                                            | 
-| ArgoCD                | devops-tools     | Helm chart argo-cd-9.4.17                       | Redis externo, sin TLS, dos reglas IngressRoute (web y gRPC con Header), recursos reducidos                   | 
+| ArgoCD                | devops-tools     | Helm chart argo-cd-9.4.17                       | Redis embebido, sin TLS, dos reglas IngressRoute (web y gRPC con Header), recursos reducidos                  | 
 | SonarQube             | devops-tools     | Helm chart sonarqube-2026.2.1                   | Community Build, PostgreSQL externo, monitoringPasscode configurado, recursos 500m/2Gi                        | 
 | Cert‑Manager          | cert-manager     | Helm chart  cert-manager-v1.20.1                | CRDs instalados, emisor Let's Encrypt                                                                         | 
 

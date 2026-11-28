@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: platform-tls
+  name: config-trivy
   namespace: argocd
   labels:
     platform.dev/part-of: microservices-platform
-    platform.dev/wave: "20"
+    platform.dev/wave: "117"
     platform.dev/stage: config
-    platform.dev/group: cert-manager
+    platform.dev/group: security
   annotations:
-    argocd.argoproj.io/sync-wave: "20"
+    argocd.argoproj.io/sync-wave: "117"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -17,9 +17,10 @@ spec:
   source:
     repoURL: https://github.com/jantolino/microservices-platform.git
     targetRevision: HEAD
-    path: k8s/platform/config/platform-tls
+    path: k8s/platform/config/trivy
   destination:
     server: https://kubernetes.default.svc
+    namespace: security
   syncPolicy:
     automated:
       prune: true
@@ -27,7 +28,6 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - SkipDryRunOnMissingResource=true
     retry:
       limit: 10
       backoff:

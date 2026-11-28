@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: config-traefik
+  name: prometheus-stack
   namespace: argocd
   labels:
     platform.dev/part-of: microservices-platform
-    platform.dev/wave: "25"
-    platform.dev/stage: config
-    platform.dev/group: networking
+    platform.dev/wave: "10"
+    platform.dev/stage: component
+    platform.dev/group: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "25"
+    argocd.argoproj.io/sync-wave: "10"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -17,10 +17,10 @@ spec:
   source:
     repoURL: https://github.com/jantolino/microservices-platform.git
     targetRevision: HEAD
-    path: k8s/platform/config/traefik
+    path: k8s/platform/components/monitoring/prometheus-stack
   destination:
     server: https://kubernetes.default.svc
-    namespace: networking
+    namespace: monitoring
   syncPolicy:
     automated:
       prune: true
@@ -28,6 +28,7 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
     retry:
       limit: 10
       backoff:

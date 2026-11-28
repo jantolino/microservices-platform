@@ -1,0 +1,57 @@
+# Red del Redis STANDALONE (componente data-services/redis). Requiere Cilium.
+# DNS lo cubre allow-dns de Foundation; todo lo demás queda denegado por default-deny-all.
+# La política del operador está en redis-operator-network-policy.yaml.
+# Patrón vault-network-policy.yaml: el CNP del servidor declara todos sus consumidores.
+# ArgoCD usa su propio Redis embebido; no necesita acceso a este.
+---
+# redis-0 solo acepta conexiones del operador y de los consumidores declarados.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: redis-bootstrap
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app: redis
+      redis_setup_type: standalone
+  ingress:
+    # 1. Redis Operator (gestión de la instancia)
+    - fromEndpoints:
+        - matchLabels:
+            name: redis-operator
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # 2. GitLab (namespace repositories): webservice, sidekiq y el Job migrations.
+    #    `app:` = workload del subchart (verificado con helm template de gitlab 9.11.2);
+    #    `app.kubernetes.io/instance` = identidad del release (igual que gitlab-network-policy.yaml):
+    #    sin este label cualquier pod de repositories con `app:` genérico entraría (label squatting).
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: repositories
+            app.kubernetes.io/instance: gitlab
+            app: webservice
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: repositories
+            app.kubernetes.io/instance: gitlab
+            app: sidekiq
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: repositories
+            app.kubernetes.io/instance: gitlab
+            app: migrations
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # 3. Redis Insight (mismo namespace data-services → sin selector de ns)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: redis-insight
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP

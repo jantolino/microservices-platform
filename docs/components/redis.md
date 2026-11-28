@@ -1,325 +1,135 @@
-﻿[![Redis Operator](https://img.shields.io/badge/Redis%20Operator-2.1.0-blue)](https://github.com/OT-CONTAINER-KIT/redis-operator)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.35.1+-326CE5)](https://kubernetes.io/)
+[![Redis Operator](https://img.shields.io/badge/Redis%20Operator-0.27.0-blue)](https://github.com/OT-CONTAINER-KIT/redis-operator)
+[![Redis](https://img.shields.io/badge/redis-0.16.9-red)](https://github.com/OT-CONTAINER-KIT/helm-charts)
 
-# Redis – Almacenamiento en caché (standalone)
+# Redis – Caché y colas compartidas (standalone)
 
-Redis es un almacén de estructuras de datos en memoria utilizado como caché distribuido, broker de mensajes y base de datos NoSQL. En este proyecto se despliega en modo **standalone**, gestionado por el **Redis Operator comunitario** y el chart Helm asociado, garantizando una configuración simple y compatible con aplicaciones que no soportan Redis Cluster (por ejemplo, GitLab).
+Redis standalone compartido de `data-services`, gestionado por el **Redis Operator de OT-CONTAINER-KIT** y desplegado como componente GitOps (Application `redis`, **wave 06**). Lo consumen **GitLab** y futuros microservicios.
 
-## 📖 Tabla de Contenidos
+> **ArgoCD no usa este Redis.** ArgoCD despliega su propio Redis embebido (subchart `redis` de `argo-cd`) dentro del namespace `argocd`, con password generada por el Job `argocd-redis-secret-init` del propio chart.
 
-- [1. Introducción y decisión técnica](#1-introducción-y-decisión-técnica)
-- [2. Documentación Oficial](#2-documentación-oficial)
-- [3. Requisitos Previos](#3-requisitos-previos)
-- [4. Instalación del operador](#4-instalación-del-operador)
-- [5. Creación del Redis standalone](#5-creación-del-redis-standalone)
-- [6. Detalles de Implementación](#6-detalles-de-implementación)
-- [7. Integración con el Ecosistema](#7-integración-con-el-ecosistema)
-- [8. Acceso](#8-acceso)
-- [9. Guía de Operaciones Kubernetes](#9-guía-de-operaciones-kubernetes)
-- [10. Desinstalación](#10-desinstalación)
+## Tabla de Contenidos
 
----
-
-## 1. Introducción y decisión técnica
-
-**Redis Operator** (mantenido por `OT-CONTAINER-KIT`) permite gestionar instancias de Redis mediante recursos personalizados (`Redis`). Se eligió esta aproximación frente al clúster (`RedisCluster`) porque:
-
-- **GitLab no es compatible con Redis Cluster**: las operaciones multi‑clave (sesiones, caché) fallan con el error `CROSSSLOT`.
-- **Modo standalone**: más sencillo, consume menos recursos y es suficiente para entornos de desarrollo.
-- **Flexibilidad**: el operador permite escalar a clúster más adelante si es necesario, pero con la configuración actual se despliega un único nodo sin réplicas.
+- [1. Propósito y decisión técnica](#1-propósito-y-decisión-técnica)
+- [2. Datos del despliegue](#2-datos-del-despliegue)
+- [3. Dependencias](#3-dependencias)
+- [4. Comunicación](#4-comunicación)
+- [5. Secretos](#5-secretos)
+- [6. TLS](#6-tls)
+- [7. NetworkPolicies activas](#7-networkpolicies-activas)
+- [8. Métricas](#8-métricas)
+- [9. Acceso](#9-acceso)
+- [10. Troubleshooting](#10-troubleshooting)
+- [11. Evolución a alta disponibilidad](#11-evolución-a-alta-disponibilidad)
 
 ---
 
-## 2. Documentación Oficial
+## 1. Propósito y decisión técnica
 
-- [Redis Operator en GitHub](https://github.com/OT-CONTAINER-KIT/redis-operator)
-- [Documentación de instalación](https://redis-operator.opstree.dev/docs/installation/)
-- [redis_exporter](https://github.com/oliver006/redis_exporter)
+**Redis standalone** (no `RedisCluster`) porque:
 
----
+- **GitLab no es compatible con Redis Cluster**: las operaciones multi-clave (sesiones, caché) fallan con `CROSSSLOT`.
+- **Menos recursos** que un cluster; suficiente para el laboratorio.
+- El operador permite migrar a `RedisReplication`/`RedisCluster` como evolución futura (ver §11).
 
-## 3. Requisitos Previos
+El trade-off aceptado: GitLab y los microservicios comparten un único punto de fallo. La mitigación es la evolución a réplicas (§11) o un segundo CR `Redis` dedicado.
 
-| Recurso | Versión / Detalle |
-|---------|-------------------|
-| Kubernetes | 1.19+ (probado en WSL2/Ubuntu) |
-| kubectl | Configurado con acceso al clúster |
-| Helm | 3.2+ |
-| Namespace | `data-services` (donde residirá el Redis) |
-| StorageClass | Debe existir uno (ej. `standard` en Minikube) |
-| Prometheus Operator | para el ServiceMonitor (opcional) |
+## 2. Datos del despliegue
 
----
+| Propiedad | Valor |
+|-----------|-------|
+| Componente | `k8s/platform/components/data-services/redis/` |
+| Application | `k8s/bootstrap/03-platform-orchestration/06-redis.yaml` |
+| Sync wave | **06** (tras `cluster-secret-store`, antes de Redis Insight y GitLab) |
+| Namespace | `data-services` |
+| Charts | `ot-helm/redis-operator` **0.27.0** + `ot-helm/redis` **0.16.9** |
+| Pod Redis | `redis-0` (StatefulSet), labels `app: redis`, `redis_setup_type: standalone` |
+| Servicio | `redis.data-services.svc.cluster.local:6379` |
+| Persistencia | PVC 3Gi (`appendonly` AOF) |
+| Recursos | requests 100m/256Mi – limits 250m/500Mi (Redis); 100m/128Mi – 200m/256Mi (operador) |
 
-## 4. Instalación del operador
+Los manifests los genera `kustomize build --enable-helm` sobre `helmCharts` (mismo patrón que PostgreSQL/CNPG); **no hay manifests manuales del servidor**.
 
-### 4.1 Agregar el repositorio Helm
+## 3. Dependencias
 
-```bash
-helm repo add ot-helm https://ot-container-kit.github.io/helm-charts/
-helm repo update
+```mermaid
+graph LR
+    subgraph "Fase previa"
+        F[Foundation] --> CSS[cluster-secret-store<br/>wave 05]
+    end
+    CSS --> R[Application redis<br/>wave 06]
+    V[Vault seed<br/>bootstrap.sh] --> ES
+    R --> OP[redis-operator]
+    R --> ES[ExternalSecret redis-auth]
+    OP --> CR[CR Redis + StatefulSet]
+    ES --> SEC[Secret redis-auth]
+    SEC --> CR
+    CR --> GL[GitLab<br/>wave 19]
+    CR --> RI[Redis Insight<br/>wave 10]
 ```
 
-### 4.2 Validar e instalar el operador
-
-Crea el archivo redis-operator-values.yaml (puedes usar el que ya tienes):
-
-```yaml
-# Etiquetas globales
-commonLabels:
-  part-of: microservices-platform
-
-# Etiquetas para el pod del operador
-podLabels:
-  part-of: microservices-platform
-
-# Etiquetas para el servicio (opcional)
-serviceLabels:
-  part-of: microservices-platform
-
-replicaCount: 1
-
-resources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
-    cpu: 200m
-    memory: 256Mi
-
-featureGates:
-  GenerateConfigInInitContainer: true
-```
-
-Instala:
-
-```bash
-
-# Valida
-helm upgrade --install redis-operator ot-helm/redis-operator \
-  --namespace data-services \
-  --create-namespace \
-  -f redis-operator-sonarqube-values.yaml \
-  --debug --dry-run
-  
-# Instala
-helm upgrade --install redis-operator ot-helm/redis-operator \
-  --namespace data-services \
-  --create-namespace \
-  -f redis-operator-sonarqube-values.yaml --debug
-```
-
-
-### 4.3 Verificar la instalación
-
-```bash
-kubectl get pods -n data-services -l app.kubernetes.io/name=redis-operator
-```
+- `cluster-secret-store` (wave 05) debe estar listo para que `redis-es.yaml` sincronice.
+- El password se siembra en Vault por `bootstrap.sh` (`vault_seed_kv`, idempotente).
+- El CR `Redis` lleva `sync-wave: "1"` + `SkipDryRunOnMissingResource` (`redis-argocd-patch.yaml`) porque su CRD llega en el mismo sync.
 
-## 5. Creación del Redis standalone
+## 4. Comunicación
 
-El repositorio `ot-helm` también proporciona un chart que crea directamente Redis standalone.
+| Origen | Destino | Puerto | Protocolo | Política |
+|--------|---------|--------|-----------|----------|
+| `redis-operator` (data-services) | kube-apiserver / `host` | 443, 6443, 8443 | TCP | `redis-operator-bootstrap` |
+| `redis-operator` | `redis-0` | 6379 | TCP | `redis-operator-bootstrap` + `redis-bootstrap` |
+| GitLab `app.kubernetes.io/instance: gitlab` + `app: webservice` / `sidekiq` / `migrations` (repositories) | `redis-0` | 6379 | TCP | `redis-bootstrap` (regla 2) |
+| Redis Insight `app.kubernetes.io/name: redis-insight` (data-services) | `redis-0` | 6379 | TCP | `redis-bootstrap` (regla 3) |
+| Prometheus (monitoring) | exporter | 9121 | TCP | `redis-metrics` ServiceMonitor |
 
-### 5.1 Crear archivo de valores personalizado
+> `default-deny-all` de `data-services` deniega cualquier otro flujo.
 
-Crea un archivo `redis-values.yaml` con el siguiente contenido (ajustado a tu proyecto):
+## 5. Secretos
 
-```yaml
-# Etiquetas globales
-labels:
-  part-of: microservices-platform
+| Secreto | Origen | Clave | Consumidor |
+|---------|--------|-------|------------|
+| `redis-auth` (data-services) | ExternalSecret `redis-es.yaml` ← `secret/data/platform/databases/redis` (`password`) | `password` | CR `Redis` (`redisStandalone.redisSecret`) |
+| `gitlab-redis-auth` (repositories) | ExternalSecret `gitlab-redis-es.yaml` ← **mismo path** | `password` | GitLab webservice/sidekiq |
+| `argocd-redis` (argocd) | Generado por el chart argo-cd (Job `redis-secret-init`) | `auth` | Solo ArgoCD |
 
-# Configuración del recurso Redis (standalone)
-redisStandalone:
-  image: redis:7.0.5
-  imagePullPolicy: IfNotPresent
-  resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
-      cpu: 250m
-      memory: 500Mi
-  persistence:
-    enabled: true
-    storageClassName: standard
-    storageSize: 3Gi
-  # Desactivar autenticación (opcional, para simplificar)
-  redisSecret:
-    secretName: ""
-
-# ServiceMonitor para Prometheus
-serviceMonitor:
-  enabled: true
-  labels:
-    release: prometheus
-  interval: 30s
-```
-
-### 5.2 Instalar Redis
-
-```bash
-# Valida
-helm upgrade --install redis ot-helm/redis \
-  --namespace data-services \
-  -f redis-sonarqube-values.yaml --debug --dry-run
-  
-# Instala
-helm upgrade --install redis ot-helm/redis \
-  --namespace data-services \
-  -f redis-sonarqube-values.yaml --debug
-```
+La rotación se hace en Vault; ESO propaga en ≤15m (`refreshInterval`) y el operador/GitLab deben reiniciarse para tomar el nuevo valor.
 
-### 5.3 Verificar la instalación
+## 6. TLS
 
-```bash
-kubectl get redis -n data-services
-kubectl get pods -n data-services -l app.kubernetes.io/name=redis
-```
+Sin TLS en dev (igual que el resto de la plataforma). La auth es `requirepass`.
 
-## 6. Detalles de Implementación
+## 7. NetworkPolicies activas
 
-### 6.1 Recurso RedisCluster
-- `Autenticación`: desactivada (redisSecret.secretName: "")
-- `storage`: PVC de 3Gi con StorageClass `standard`.
-- `resources`: límites y solicitudes ajustados al clúster de 28GB.
-- `serviceMonitor`: habilita ServiceMonitor automático para Prometheus.
+| Política | Archivo | Función |
+|----------|---------|---------|
+| `redis-operator-bootstrap` | `redis-operator-network-policy.yaml` | Egress del operador → apiserver/host y → redis-0 |
+| `redis-bootstrap` | `redis-network-policy.yaml` | Ingress a redis-0: operador + GitLab (`app.kubernetes.io/instance: gitlab` + `webservice`/`sidekiq`/`migrations`, desde repositories) + Redis Insight — patrón Vault: el CNP declara todos sus consumidores |
+| `redis-insight-bootstrap` | `redis-insight-network-policy.yaml` | Egress de Redis Insight → redis-0:6379 |
+| `redis-insight` | `config/redis-insight/redis-insight-network-policy.yaml` | Ingress a Redis Insight:5540 solo desde Traefik (networking) |
 
-### 6.2 Métricas Prometheus
+## 8. Métricas
 
-El chart crea automáticamente un ServiceMonitor con la etiqueta `release: prometheus`. Esto permite que Prometheus Operator descubra las métricas de Redis.
+`serviceMonitor.enabled: false` en values; el scrape lo define `config/redis/redis-service-monitor.yaml` (`redis-metrics`, endpoint `http-metrics` cada 30s, label `release: prometheus`).
 
-### 6.2 Servicios expuestos
+## 9. Acceso
 
-- `6379`: puerto Redis
-- `9121`: puerto de métricas del exporter (solo para recolección)
+- **Cliente**: `kubectl port-forward -n data-services svc/redis 6379:6379` y `redis-cli -a "$(kubectl get secret redis-auth -n data-services -o jsonpath='{.data.password}' | base64 -d)"`.
+- **UI**: Redis Insight (dentro del componente `redis`, wave 06; exposición en `config/redis-insight/`) en `https://redis-insight.dev.lab`.
 
-## 7. Integración con el Ecosistema
+## 10. Troubleshooting
 
-### 7.1 Prometheus
+| Síntoma | Causa probable | Acción |
+|---------|----------------|--------|
+| `redis-auth` no existe / ES `SecretSyncedError` | Path ausente en Vault o `cluster-secret-store` no listo | `kubectl describe externalsecret redis-auth -n data-services`; verificar `vault kv get secret/platform/databases/redis` |
+| CR `Redis` no aparece | CRD aún no registrado (mismo sync) | Normal: wave 1 + SkipDryRun; esperar al reintento de ArgoCD |
+| GitLab sin conexión a Redis | Pod sin `app.kubernetes.io/instance: gitlab` o `app:` distinto de `webservice`/`sidekiq`/`migrations` (regla 2 de `redis-bootstrap`) | `kubectl get pod -n repositories --show-labels`; comparar con la CNP |
+| `redis-0` no arranca | Secret/auth o PVC | `kubectl describe pod redis-0 -n data-services`; logs del operador |
+| App `redis` Degraded en ArgoCD | Sync parcial | `argocd app get redis`; `kubectl get ciliumnetworkpolicies -n data-services` |
 
-Verifica que el ServiceMonitor esté presente:
+## 11. Evolución a alta disponibilidad
 
-```bash
-kubectl get servicemonitor -n data-services
-```
+Dos caminos, ambos cambios de values/CR (no de arquitectura):
 
-Confirma que las métricas llegan a Prometheus:
+- **RedisReplication + Sentinel** (charts `ot-helm/redis-replication` + `ot-helm/redis-sentinel`): réplicas con failover; GitLab sigue apuntando a un único Service → compatible.
+- **Segundo CR `Redis` dedicado a GitLab**: separa dominios de fallo por consumidor con el mismo operador.
 
-```bash
-kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090:9090
-```
-
-Abre `http://localhost:9090/targets` y busca un target con el nombre `data-services/redis-cluster/0`. Debe estar `UP`.
-
-Consulta métricas como `redis_connected_clients` o `redis_memory_used_bytes`.
-
-### 7.2 Traefik (Ingress)
-
-Redis no tiene interfaz web nativa. Si se necesita una UI de administración, se puede desplegar `Redis Insight` aparte y exponerla con IngressRoute. Ejemplo de despliegue rápido:
-
-```bash
-kubectl run redis-insight --image=redislabs/redisinsight --port=5540 -n data-services
-kubectl expose pod redis-insight --port=5540 --target-port=5540 -n data-services
-```
-
-Luego crear IngressRoute:
-
-```yaml
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: redis-insight-route
-  namespace: data-services
-  labels:
-    part-of: microservices-platform
-spec:
-  entryPoints:
-    - web
-  routes:
-    - match: Host(`redis-insight.dev.lab`)
-      kind: Rule
-      services:
-        - name: redis-insight
-          port: 5540
-```
-
-## 8. Acceso
-
-### 8.1 Port-forward
-
-```bash
-kubectl port-forward -n data-services svc/redis-cluster 6379:6379
-```
-
-### 8.2 Ingress con Traefik
-
-No se expone Redis directamente por Ingress. Si se despliega Redis Insight, se accede por `http://redis-insight.dev.lab` (después de configurar DNS o `/etc/hosts`).
-
-## 9. Guía de Operaciones Kubernetes
-
-### 9.1 Verificar estado
-
-```bash
-kubectl get redisclusters -n data-services
-kubectl get pods -n data-services -l app.kubernetes.io/name=redis-cluster
-kubectl get pvc -n data-services -l app.kubernetes.io/name=redis-cluster
-```
-
-### 9.2 Logs
-
-```bash
-kubectl logs -n data-services redis-0
-kubectl logs -n data-services deployment/redis-operator
-```
-
-### 9.3 Reiniciar Redis
-
-```bash
-kubectl delete pod -n data-services redis-0
-
-# NOTA: El operador lo recreará automáticamente.
-```
-
-### 9.4 Solución de problemas comunes
-
-```bash
-kubectl delete pod -n data-services -l app.kubernetes.io/name=redis-cluster
-```
-
-### 9.5 Solución de problemas comunes
-
-**PVC en estado Pending**: Verificar StorageClass (`kubectl get storageclass`). En Minikube, activar `minikube addons enable storage-provisioner`.
-
-**Métricas no aparecen**: Comprobar que el ServiceMonitor tiene la etiqueta `release: prometheus` y que el puerto `metrics` está expuesto en el servicio.
-
-**Pod no arranca**: Revisar logs y eventos (`kubectl describe pod`). Puede ser falta de recursos o configuración errónea.
-
-**¿Por qué no usar Redis Cluster?**: GitLab no es compatible con Redis Cluster (`operaciones multi‑clave como sesiones y caché fallan con error CROSSSLOT`). Por eso se optó por un nodo standalone.
-
-Si en el futuro se desea un clúster con alta disponibilidad: Se puede instalar el chart `ot-helm/redis-cluster` con la configuración adecuada, pero teniendo en cuenta que GitLab no funcionará correctamente con él.
-
-## 10. Desinstalación
-
-### 10.1 Eliminar Redis
-
-```bash
-helm uninstall redis -n data-services
-
-```
-
-### 10.2 Eliminar el operador
-
-```bash
-helm uninstall redis-operator -n data-services
-```
-
-### 10.3 Limpiar ServiceMonitor e IngressRoute (si existen)
-
-```bash
-kubectl delete servicemonitor redis -n data-services --ignore-not-found
-kubectl delete ingressroute redis-insight-route -n data-services --ignore-not-found
-kubectl delete svc redis-insight -n data-services --ignore-not-found
-```
-
----
+`RedisCluster` queda descartado mientras GitLab sea consumidor (limitación `CROSSSLOT`).

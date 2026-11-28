@@ -1,0 +1,30 @@
+# Etiquetas globales
+labels:
+  part-of: microservices-platform
+
+# Configuración del recurso Redis (standalone)
+redisStandalone:
+  imagePullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 500Mi
+  persistence:
+    enabled: true
+    storageClassName: ""
+    storageSize: 3Gi
+
+
+  # Secret `redis-auth` creado por redis-es.yaml desde Vault (secret/data/platform/databases/redis)
+  redisSecret:
+    secretName: redis-auth
+    secretKey: password
+
+externalConfig:
+  enabled: true
+
+serviceMonitor:
+  enabled: false

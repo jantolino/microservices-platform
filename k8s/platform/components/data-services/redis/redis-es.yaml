@@ -1,0 +1,22 @@
+# Password del Redis standalone, con Vault como fuente (sembrado por bootstrap.sh).
+# El mismo path alimenta el ExternalSecret gitlab-redis-auth del namespace repositories.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: redis-auth
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  refreshInterval: 15m
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: redis-auth
+    creationPolicy: Owner
+  data:
+    - secretKey: password # <--- El CR Redis lee redis-auth/password (redisStandalone.redisSecret)
+      remoteRef:
+        key: secret/data/platform/databases/redis
+        property: password

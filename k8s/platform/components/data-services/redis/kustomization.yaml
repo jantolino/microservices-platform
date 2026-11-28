@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: data-services
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microservices-platform
+      platform.dev/component: redis
+    includeSelectors: false
+
+resources:
+  - redis-es.yaml
+  - redis-operator-network-policy.yaml
+  - redis-network-policy.yaml
+  - redis-insight.yaml
+  - redis-insight-network-policy.yaml
+
+patches:
+  - target:
+      group: redis.redis.opstreelabs.in
+      kind: Redis
+    path: redis-argocd-patch.yaml
+
+helmCharts:
+  - name: redis-operator
+    repo: https://ot-container-kit.github.io/helm-charts
+    version: 0.27.0
+    releaseName: redis-operator
+    namespace: data-services
+    includeCRDs: true
+    valuesFile: redis-operator-values.yaml
+
+  - name: redis
+    repo: https://ot-container-kit.github.io/helm-charts
+    version: 0.16.9
+    releaseName: redis
+    namespace: data-services
+    valuesFile: redis-standalone-values.yaml

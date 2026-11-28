@@ -1,0 +1,35 @@
+# Red del Redis OPERATOR (componente data-services/redis). Requiere Cilium.
+# DNS lo cubre allow-dns de Foundation; el resto queda denegado por default-deny-all.
+# El operator necesita salida al API server (reconciliar CRs) y al pod redis-0 (gestión).
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: redis-operator-bootstrap
+  namespace: data-services
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      name: redis-operator
+  egress:
+    - toEntities:
+        - kube-apiserver
+        - host
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app: redis
+            redis_setup_type: standalone
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP

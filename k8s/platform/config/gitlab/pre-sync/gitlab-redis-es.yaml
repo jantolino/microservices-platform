@@ -1,4 +1,4 @@
-# Contraseña de Redis para GitLab, leída de Vault (publicada por config/redis/redis-push-secret.yaml)
+# Contraseña de Redis para GitLab, leída de Vault (sembrada por bootstrap.sh: secret/data/platform/databases/redis)
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:

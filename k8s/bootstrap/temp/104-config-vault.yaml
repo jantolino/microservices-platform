@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: config-trivy
+  name: config-vault
   namespace: argocd
   labels:
     platform.dev/part-of: microservices-platform
-    platform.dev/wave: "37"
+    platform.dev/wave: "104"
     platform.dev/stage: config
-    platform.dev/group: security
+    platform.dev/group: secrets-manager
   annotations:
-    argocd.argoproj.io/sync-wave: "37"
+    argocd.argoproj.io/sync-wave: "104"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -17,10 +17,10 @@ spec:
   source:
     repoURL: https://github.com/jantolino/microservices-platform.git
     targetRevision: HEAD
-    path: k8s/platform/config/trivy
+    path: k8s/platform/config/vault
   destination:
     server: https://kubernetes.default.svc
-    namespace: security
+    namespace: secrets-manager
   syncPolicy:
     automated:
       prune: true

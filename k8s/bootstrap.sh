@@ -1,6 +1,6 @@
 #!/bin/bash
 # bootstrap.sh
-# Script de bootstrap para desplegar la plataforma base (Foundation, Redis Operator, Redis Standalone, ArgoCD)
+# Script de bootstrap para desplegar la plataforma base (Foundation, ArgoCD y Vault). Redis ya no se instala aquí: es un componente GitOps (Application redis, wave 06).
 # Ejecutar desde la raíz del repositorio: ./k8s/bootstrap/bootstrap.sh
 
 set -e  # Detener el script si cualquier comando falla
@@ -12,22 +12,14 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$(pwd)")"
 cd "$REPO_ROOT"
 
 FOUNDATION_PATH="k8s/bootstrap/00-foundation"
-REDIS_OP_VALUES="k8s/bootstrap/01-redis/redis-operator-values.yaml"
-REDIS_STANDALONE_VALUES="k8s/bootstrap/01-redis/redis-standalone-values.yaml"
-REDIS_NETPOL="k8s/bootstrap/01-redis/redis-network-policy.yaml"
 ARGOCD_VALUES="k8s/bootstrap/02-argocd/argocd-values.yaml"
 ARGOCD_NETPOL="k8s/bootstrap/02-argocd/argocd-network-policy.yaml"
 ROOT_APP="k8s/bootstrap/03-platform-orchestration/root-app-of-apps.yaml"
 
-NAMESPACE_DATA="data-services"
 NAMESPACE_ARGOCD="argocd"
 NAMESPACE_VAULT="secrets-manager"
 
-# Contraseña de Redis (se genera una sola vez; nunca se versiona)
-REDIS_SECRET_NAME="redis-auth"
-ARGOCD_REDIS_SECRET_NAME="argocd-redis-auth"
-
-# Vault: init/unseal/seed del auth (Fase 5)
+# Vault: init/unseal/seed del auth (Fase 3)
 VAULT_POD="vault-0"
 VAULT_KEY_SHARES=5
 VAULT_KEY_THRESHOLD=3
@@ -102,84 +94,9 @@ namespace_exists() {
     return $?
 }
 
-# Función para verificar que el operador de Redis esté listo antes de instalar el standalone
-wait_for_redis_operator() {
-    log_info "Esperando a que el operador de Redis esté completamente operativo..."
-
-    # Esperar a que el deployment del operador esté disponible
-    kubectl wait --for=condition=available --timeout=120s -n "$NAMESPACE_DATA" deployment/redis-operator 2>/dev/null || {
-        log_error "El operador de Redis no se volvió disponible en el tiempo esperado."
-        log_info "Intentando obtener información de depuración:"
-        kubectl get pods -n "$NAMESPACE_DATA" -l app.kubernetes.io/name=redis-operator
-        kubectl describe pods -n "$NAMESPACE_DATA" -l app.kubernetes.io/name=redis-operator
-        exit 1
-    }
-
-    # Verificar que el CRD esté instalado
-    CRD_NAME=$(kubectl get crd | grep "redis.*opstreelabs" | awk '{print $1}' | head -1)
-    if [ -z "$CRD_NAME" ]; then
-        log_error "No se encontró ningún CRD de Redis Operator."
-        log_info "Puede que el operador aún no haya registrado el CRD. Esperando unos segundos..."
-        sleep 10
-        CRD_NAME=$(kubectl get crd | grep "redis.*opstreelabs" | awk '{print $1}' | head -1)
-        if [ -z "$CRD_NAME" ]; then
-            log_error "El CRD no apareció. La instalación del operador puede haber fallado."
-            exit 1
-        fi
-    fi
-
-    log_success "Operador de Redis listo y CRD disponible."
-}
-
-# Función para verificar que Redis está listo
-#wait_for_redis_ready() {
-#    log_info "Esperando a que Redis Standalone esté listo..."
-#
-#    kubectl wait --for=condition=ready --timeout=180s -n "$NAMESPACE_DATA" pod/redis-0 2>/dev/null || {
-#        log_error "Redis no se volvió listo en el tiempo esperado."
-#        log_info "Intentando obtener información de depuración:"
-#        kubectl get pods -n "$NAMESPACE_DATA" -l app.kubernetes.io/name=redis
-#        kubectl describe pods -n "$NAMESPACE_DATA" -l app.kubernetes.io/name=redis
-#        exit 1
-#    }
-#
-#    log_success "Redis Standalone está listo."
-#}
-
-wait_for_redis_ready() {
-    log_info "Esperando a que Redis Standalone esté listo..."
-
-    # kubectl wait falla al instante sobre un pod inexistente:
-    # primero esperar a que el operador lo cree
-    local timeout=180 elapsed=0
-    until kubectl get pod redis-0 -n "$NAMESPACE_DATA" &>/dev/null; do
-        if (( elapsed >= timeout )); then
-            log_error "El operador no creó el pod redis-0 en ${timeout}s."
-            break
-        fi
-        sleep 5
-        (( elapsed += 5 ))
-    done
-
-    if ! kubectl wait --for=condition=ready --timeout=180s -n "$NAMESPACE_DATA" pod/redis-0 2>/dev/null; then
-        log_error "Redis no se volvió listo en el tiempo esperado. Estado real:"
-        echo "--- CR Redis ---"
-        kubectl get redis -n "$NAMESPACE_DATA" 2>/dev/null || echo "CR Redis no existe (el operador no lo reconcilió o el chart no lo creó)"
-        kubectl describe redis -n "$NAMESPACE_DATA" 2>/dev/null | tail -15 || true
-        echo "--- Recursos creados ---"
-        kubectl get statefulset,pod,pvc,secret -n "$NAMESPACE_DATA"
-        echo "--- Eventos recientes ---"
-        kubectl get events -n "$NAMESPACE_DATA" --sort-by=.lastTimestamp | tail -15
-        echo "--- Logs del operador ---"
-        kubectl logs deploy/redis-operator -n "$NAMESPACE_DATA" --tail=40 || true
-        exit 1
-    fi
-
-    log_success "Redis Standalone está listo."
-}
 
 # ============================================
-# Funciones de Vault (Fase 5)
+# Funciones de Vault (Fase 3)
 # ============================================
 vault_cmd() {
     kubectl exec -n "$NAMESPACE_VAULT" "$VAULT_POD" -c vault -- "$@"
@@ -348,6 +265,7 @@ seed() {
 }
 
 seed secret/platform/databases/postgres    password="$(rand)"
+seed secret/platform/databases/redis      password="$(rand)"
 seed secret/platform/tools/pgadmin         password="$(rand)"
 seed secret/platform/tools/grafana         admin-user=admin admin-password="$(rand)"
 seed secret/platform/tools/jenkins         jenkins-admin-user=admin jenkins-admin-password="$(rand)"
@@ -382,31 +300,6 @@ restart_vault_config_operator() {
     log_success "Vault Config Operator reiniciado."
 }
 
-# Crea la contraseña de Redis si no existe y la replica en el namespace de ArgoCD.
-# Idempotente: si ya existe se reutiliza (regenerarla dejaría a Redis y ArgoCD desincronizados).
-ensure_redis_secrets() {
-    local password
-    if kubectl get secret "$REDIS_SECRET_NAME" -n "$NAMESPACE_DATA" &>/dev/null; then
-        log_info "Secret $REDIS_SECRET_NAME ya existe; se reutiliza."
-        password="$(kubectl get secret "$REDIS_SECRET_NAME" -n "$NAMESPACE_DATA" -o jsonpath='{.data.password}' | base64 -d)"
-    else
-        password="$(openssl rand -base64 32 | tr -d '/+=\n')"
-        kubectl create secret generic "$REDIS_SECRET_NAME" -n "$NAMESPACE_DATA" \
-            --from-literal=password="$password"
-        kubectl label secret "$REDIS_SECRET_NAME" -n "$NAMESPACE_DATA" part-of=microservices-platform --overwrite >/dev/null
-        log_success "Secret $REDIS_SECRET_NAME creado."
-    fi
-
-    if ! namespace_exists "$NAMESPACE_ARGOCD"; then
-        kubectl create namespace "$NAMESPACE_ARGOCD"
-    fi
-    kubectl create secret generic "$ARGOCD_REDIS_SECRET_NAME" -n "$NAMESPACE_ARGOCD" \
-        --from-literal=redis-password="$password" \
-        --dry-run=client -o yaml | kubectl apply -f - >/dev/null
-    kubectl label secret "$ARGOCD_REDIS_SECRET_NAME" -n "$NAMESPACE_ARGOCD" part-of=microservices-platform --overwrite >/dev/null
-    log_success "Secret $ARGOCD_REDIS_SECRET_NAME sincronizado en $NAMESPACE_ARGOCD."
-}
-
 # Llamar a la validación al inicio del script (justo después de las configuraciones iniciales)
 validate_tools
 
@@ -437,22 +330,12 @@ if [ ! -d "$FOUNDATION_PATH" ]; then
     exit 1
 fi
 
-if [ ! -f "$REDIS_OP_VALUES" ]; then
-    log_error "No se encontró el archivo de valores para Redis Operator: $REDIS_OP_VALUES"
-    exit 1
-fi
-
-if [ ! -f "$REDIS_STANDALONE_VALUES" ]; then
-    log_error "No se encontró el archivo de valores para Redis Standalone: $REDIS_STANDALONE_VALUES"
-    exit 1
-fi
-
 if [ ! -f "$ARGOCD_VALUES" ]; then
     log_error "No se encontró el archivo de valores para ArgoCD: $ARGOCD_VALUES"
     exit 1
 fi
 
-for netpol in "$REDIS_NETPOL" "$ARGOCD_NETPOL"; do
+for netpol in "$ARGOCD_NETPOL"; do
     if [ ! -f "$netpol" ]; then
         log_error "No se encontró la política de red: $netpol"
         exit 1
@@ -466,63 +349,16 @@ log_info "=== FASE 1: Aplicando Foundation (Namespaces, NetworkPolicies, Storage
 kubectl apply -k "$FOUNDATION_PATH"
 log_success "Foundation aplicada correctamente."
 
-# Verificar que el namespace data-services existe
-if ! namespace_exists "$NAMESPACE_DATA"; then
-    log_error "El namespace $NAMESPACE_DATA no fue creado por Foundation. Verifica la configuración."
-    exit 1
-fi
-
-# Políticas de red mínimas de Redis y ArgoCD antes de instalarlos (arrancan ya sellados)
-log_info "Aplicando políticas de red de arranque (Redis y ArgoCD)..."
-kubectl apply -f "$REDIS_NETPOL"
+# Políticas de red de arranque de ArgoCD antes de instalarlo (arranca ya sellado).
+# Las de Redis las gestiona ArgoCD con el componente data-services/redis (wave 06).
+log_info "Aplicando políticas de red de arranque de ArgoCD..."
 kubectl apply -f "$ARGOCD_NETPOL"
 log_success "Políticas de red de arranque aplicadas."
 
 # ============================================
-# Fase 2: Redis Operator
+# Fase 2: ArgoCD
 # ============================================
-log_info "=== FASE 2: Instalando Redis Operator ==="
-
-# Agregar repositorio ot-helm si no está presente
-if ! helm repo list | grep -q "ot-helm"; then
-    log_info "Agregando repositorio ot-helm..."
-    helm repo add ot-helm https://ot-container-kit.github.io/helm-charts/
-    helm repo update
-fi
-
-log_info "Ejecutando: helm upgrade --install redis-operator ot-helm/redis-operator --namespace $NAMESPACE_DATA -f $REDIS_OP_VALUES --wait"
-helm upgrade --install redis-operator ot-helm/redis-operator \
-    --namespace "$NAMESPACE_DATA" \
-    -f "$REDIS_OP_VALUES" \
-    --wait --debug
-
-log_success "Redis Operator instalado correctamente."
-
-# Verificar que el operador esté realmente operativo
-wait_for_redis_operator
-
-# ============================================
-# Fase 3: Redis Standalone
-# ============================================
-log_info "=== FASE 3: Instalando Redis Standalone ==="
-
-ensure_redis_secrets
-
-log_info "Ejecutando: helm upgrade --install redis ot-helm/redis --namespace $NAMESPACE_DATA -f $REDIS_STANDALONE_VALUES --wait"
-helm upgrade --install redis ot-helm/redis \
-    --namespace "$NAMESPACE_DATA" \
-    -f "$REDIS_STANDALONE_VALUES" \
-    --wait --debug
-
-log_success "Redis Standalone instalado correctamente."
-
-# Verificar que Redis esté listo
-wait_for_redis_ready
-
-# ============================================
-# Fase 4: ArgoCD
-# ============================================
-log_info "=== FASE 4: Instalando ArgoCD ==="
+log_info "=== FASE 2: Instalando ArgoCD ==="
 
 # Agregar repositorio de ArgoCD si no está presente
 if ! helm repo list | grep -q "argo"; then
@@ -552,9 +388,9 @@ kubectl wait --for=condition=ready --timeout=180s -n "$NAMESPACE_ARGOCD" pod -l 
 }
 
 # ============================================
-# Fase 5: Plataforma GitOps + Vault
+# Fase 3: Plataforma GitOps + Vault
 # ============================================
-log_info "=== FASE 5: Aplicando App of Apps e inicializando Vault ==="
+log_info "=== FASE 3: Aplicando App of Apps e inicializando Vault ==="
 
 kubectl apply -f "$ROOT_APP"
 log_success "App of Apps aplicada. ArgoCD desplegará los componentes por waves."

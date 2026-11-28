@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: config-redis
+  name: config-headlamp
   namespace: argocd
   labels:
     platform.dev/part-of: microservices-platform
-    platform.dev/wave: "29"
+    platform.dev/wave: "118"
     platform.dev/stage: config
-    platform.dev/group: data-services
+    platform.dev/group: headlamp
   annotations:
-    argocd.argoproj.io/sync-wave: "29"
+    argocd.argoproj.io/sync-wave: "118"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -17,10 +17,10 @@ spec:
   source:
     repoURL: https://github.com/jantolino/microservices-platform.git
     targetRevision: HEAD
-    path: k8s/platform/config/redis
+    path: k8s/platform/config/headlamp
   destination:
     server: https://kubernetes.default.svc
-    namespace: data-services
+    namespace: headlamp
   syncPolicy:
     automated:
       prune: true

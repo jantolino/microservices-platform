@@ -4,7 +4,8 @@
 # Ejecutar desde la raíz del repositorio: ./k8s/bootstrap-uninstall.sh
 # Orden de desinstalación (inverso a la instalación):
 # 1. Applications de ArgoCD en orden inverso de sync-wave (ArgoCD aún activo borra sus recursos)
-# 2. ArgoCD, Redis Standalone y Redis Operator (Helm)
+# 2. ArgoCD (Helm). El Redis standalone ya no se instala con bootstrap: se elimina
+#    en FASE 1 junto con su Application y sus recursos gestionados.
 # 3. Webhooks e instancias de CRDs con finalizers
 # 4. Namespaces de Foundation
 # 5. Volúmenes persistentes y datos residuales
@@ -245,7 +246,7 @@ delete_argocd_applications
 # ============================================
 log_step "FASE 2: Desinstalando componentes con Helm (orden correcto)..."
 
-# 2.1 ArgoCD (depende de Redis, pero ArgoCD se desinstala primero porque no afecta a Redis)
+# ArgoCD (su Redis es embebido; no afecta al standalone)
 if namespace_exists "argocd"; then
     log_info "Desinstalando ArgoCD..."
     helm uninstall argocd -n argocd --wait 2>/dev/null && log_success "ArgoCD desinstalado." || log_warning "ArgoCD no estaba instalado"
@@ -253,27 +254,6 @@ else
     log_warning "Namespace argocd no existe, omitiendo ArgoCD."
 fi
 
-# 2.2 Redis Standalone (depende del operador)
-if namespace_exists "data-services"; then
-    if helm list -n data-services | grep -q "^redis "; then
-        log_info "Desinstalando Redis Standalone..."
-        helm uninstall redis -n data-services --wait 2>/dev/null && log_success "Redis Standalone desinstalado." || log_warning "Redis no estaba instalado"
-    else
-        log_warning "Redis Standalone no estaba instalado."
-    fi
-else
-    log_warning "Namespace data-services no existe, omitiendo Redis."
-fi
-
-# 2.3 Redis Operator (debe desinstalarse después de Redis Standalone)
-if namespace_exists "data-services"; then
-    if helm list -n data-services | grep -q "^redis-operator"; then
-        log_info "Desinstalando Redis Operator..."
-        helm uninstall redis-operator -n data-services --wait 2>/dev/null && log_success "Redis Operator desinstalado." || log_warning "Redis Operator no estaba instalado"
-    else
-        log_warning "Redis Operator no estaba instalado."
-    fi
-fi
 
 # ============================================
 # FASE 3: Webhooks e instancias de CRDs

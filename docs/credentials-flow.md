@@ -22,7 +22,7 @@ bootstrap.sh (semilla) ──► Vault (fuente única)
 
 - Genera contraseñas **aleatorias** y las siembra en Vault **solo si no existen** (idempotente).
 - Las claves de unseal de Vault se guardan en `k8s/.secrets/` (ignorado por Git).
-- Excepciones temporales (mientras sigan en bootstrap): ArgoCD y Redis.
+- Excepción temporal: ArgoCD (el Redis embebido y la clave admin inicial los genera el propio chart).
 
 ## 2. Fuente única: Vault
 
@@ -31,6 +31,7 @@ Rutas KV v2 (`secret/data/platform/...`):
 | Ruta | Propiedades | Consumidores |
 |------|-------------|--------------|
 | `secret/data/platform/databases/postgres` | `password` | GitLab, Artifactory, SonarQube, pgAdmin |
+| `secret/data/platform/databases/redis` | `password` | Redis standalone, GitLab |
 | `secret/data/platform/databases/artifactory` | `password` | Artifactory |
 | `secret/data/platform/tools/artifactory` | `masterKey`, `joinKey` | Artifactory |
 | `secret/data/platform/tools/rabbitmq` | `default_user`, `default_pass` | (reservado; hoy el operador genera credenciales) |
@@ -42,7 +43,8 @@ Cada `ExternalSecret` (en `k8s/platform/config/<componente>/`) lee de Vault medi
 
 | ExternalSecret | Namespace | Secret generado | Claves |
 |----------------|-----------|-----------------|--------|
-| `gitlab-redis-password` | repositories | `argocd-redis-auth` | `redis-password` |
+| `gitlab-redis-auth` | repositories | `gitlab-redis-auth` | `password` |
+| `redis-auth` | data-services | `redis-auth` | `password` |
 | `gitlab-postgres-password` | repositories | `gitlab-postgres-password` | `password` |
 | `artifactory-database` | devops-tools | `artifactory-database` | `db-password` |
 | `artifactory-masterkey` | devops-tools | `artifactory-masterkey` | `master-key` |
@@ -77,7 +79,8 @@ jaeger:
 
 - **Elasticsearch**: el chart elastic auto-genera `elasticsearch-master-elastic-password` (sin Vault). Jaeger lo consume vía `secretKeyRef`.
 - **RabbitMQ**: sin `default_user`/`default_pass` en el CR, el operador genera credenciales aleatorias en el Secret `rabbitmq-default-user` (namespace `data-services`). Un ExternalSecret no puede inyectar en `additionalConfig` del CR.
-- **Redis**: Secret `redis-auth` generado por `bootstrap.sh` (excepción temporal hasta migrar a Vault).
+- **Redis standalone**: Secret `redis-auth` creado por el ExternalSecret `redis-es.yaml` del componente (`secret/data/platform/databases/redis`). GitLab consume el mismo path vía su propio ExternalSecret.
+- **Redis embebido de ArgoCD**: password generada por el Job `argocd-redis-secret-init` del chart en el Secret `argocd-redis` (no pasa por Vault; solo lo usa ArgoCD).
 - **Vault**: la propia plataforma se autogestiona; unseal keys solo en `k8s/.secrets/`.
 
 ## Verificación

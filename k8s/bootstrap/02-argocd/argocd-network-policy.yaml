@@ -34,9 +34,7 @@ spec:
               protocol: TCP
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: data-services
-            app: redis
-            redis_setup_type: standalone
+            app.kubernetes.io/name: argocd-redis
       toPorts:
         - ports:
             - port: "6379"
@@ -74,9 +72,7 @@ spec:
               protocol: TCP
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: data-services
-            app: redis
-            redis_setup_type: standalone
+            app.kubernetes.io/name: argocd-redis
       toPorts:
         - ports:
             - port: "6379"
@@ -140,9 +136,7 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: data-services
-            app: redis
-            redis_setup_type: standalone
+            app.kubernetes.io/name: argocd-redis
       toPorts:
         - ports:
             - port: "6379"
@@ -182,6 +176,7 @@ spec:
               - matchName: cloudnative-pg.io
               - matchName: helm.elastic.co
               - matchName: helm.releases.hashicorp.com
+              - matchName: ot-container-kit.github.io
     # Allowlist externa (1.2f): GitHub + repos Helm de k8s/platform/components/*/kustomization.yaml
     - toFQDNs:
         - matchName: github.com
@@ -207,7 +202,57 @@ spec:
         - matchName: cloudnative-pg.io
         - matchName: helm.elastic.co
         - matchName: helm.releases.hashicorp.com
+        - matchName: ot-container-kit.github.io
       toPorts:
         - ports:
             - port: "443"
+              protocol: TCP
+---
+# 5. argocd-redis (embebido): solo acepta conexiones de los componentes de ArgoCD
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argocd-redis-bootstrap
+  namespace: argocd
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-redis
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: argocd-server
+        - matchLabels:
+            app.kubernetes.io/name: argocd-repo-server
+        - matchLabels:
+            app.kubernetes.io/name: argocd-application-controller
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+# 6. argocd-redis-secret-init (Job del chart): genera la password en el Secret argocd-redis
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argocd-redis-secret-init-bootstrap
+  namespace: argocd
+  labels:
+    part-of: microservices-platform
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-redis-secret-init
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "8443"
               protocol: TCP

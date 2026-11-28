@@ -1,15 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: config-jenkins
+  name: traefik
   namespace: argocd
   labels:
     platform.dev/part-of: microservices-platform
-    platform.dev/wave: "33"
-    platform.dev/stage: config
-    platform.dev/group: devops-tools
+    platform.dev/wave: "09"
+    platform.dev/stage: component
+    platform.dev/group: networking
   annotations:
-    argocd.argoproj.io/sync-wave: "33"
+    argocd.argoproj.io/sync-wave: "09"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -17,10 +17,10 @@ spec:
   source:
     repoURL: https://github.com/jantolino/microservices-platform.git
     targetRevision: HEAD
-    path: k8s/platform/config/jenkins
+    path: k8s/platform/components/networking/traefik
   destination:
     server: https://kubernetes.default.svc
-    namespace: devops-tools
+    namespace: networking
   syncPolicy:
     automated:
       prune: true
@@ -28,6 +28,7 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
     retry:
       limit: 10
       backoff:
