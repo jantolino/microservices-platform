@@ -377,7 +377,7 @@ log_info "Ejecutando: helm upgrade --install argocd argo/argo-cd --namespace $NA
 helm upgrade --install argocd argo/argo-cd \
     --namespace "$NAMESPACE_ARGOCD" \
     -f "$ARGOCD_VALUES" \
-    --wait --debug
+    --wait --timeout 10m --debug
 
 log_success "ArgoCD instalado correctamente."
 
